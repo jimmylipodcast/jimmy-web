@@ -125,7 +125,7 @@ export default function AdminControlPanel({
           </div>
 
           <div className="flex flex-col space-y-1">
-            <label className="text-xs font-bold text-slate-500">選取課程分類</label>
+            <label className="text-xs font-bold text-slate-500">選取文章分類</label>
             <select
               value={courseName}
               onChange={(e) => setCourseName(e.target.value)}
