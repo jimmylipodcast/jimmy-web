@@ -1,29 +1,4 @@
-[
-  {
-    "id": "1782306327367",
-    "courseName": "化學高一",
-    "title": "1-3",
-    "description": "無",
-    "imageUrl": "",
-    "videoUrl": "",
-    "links": []
-  },
-  {
-    "id": "1782306308659",
-    "courseName": "化學高一",
-    "title": "1-2",
-    "description": "無",
-    "imageUrl": "",
-    "videoUrl": "",
-    "links": []
-  },
-  {
-    "id": "1782306228801",
-    "courseName": "化學高一",
-    "title": "1-1",
-    "description": "無\n",
-    "imageUrl": "",
-    "videoUrl": "",
-    "links": []
-  }
-]
+{
+  "steps": [],
+  "categories": ["化學高一", "化學高二", "化學高三"]
+}
