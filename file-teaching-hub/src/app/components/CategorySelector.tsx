@@ -10,7 +10,7 @@ export default function CategorySelector({ uniqueCourseNames, selected, onSelect
   return (
     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-xs space-y-3">
       <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b pb-2">
-        課程分類
+        文章分類
       </h4>
       <div className="flex flex-col space-y-1">
         {uniqueCourseNames.map((name) => (
