@@ -90,16 +90,16 @@ export default function AdminControlPanel({
         </button>
       </div>
 
-      {/* 目錄分類管理：新增輸入框 + 可拖曳排序列表 */}
+    {/* 目錄分類管理：新增輸入框 + 可拖曳排序列表 */}
       <div className="bg-slate-50 p-4 rounded-xl space-y-3">
-        <h4 className="text-xs font-bold text-slate-600">📁 管理目錄分類（可拖曳調整順序）</h4>
+        <h4 className="text-sm font-bold text-slate-600">📁 管理目錄分類（可拖曳調整順序）</h4>
         <div className="flex gap-2">
           <input
             type="text"
             value={newCatName}
             onChange={(e) => setNewCatName(e.target.value)}
             placeholder="新增自訂分類名稱 (例如: 化學高三)"
-            className="border bg-white border-slate-200 p-2 rounded-xl text-xs flex-1 focus:outline-indigo-500"
+            className="border bg-white border-slate-200 p-2.5 rounded-xl text-sm flex-1 focus:outline-indigo-500"
           />
           <button
             type="button"
@@ -107,14 +107,14 @@ export default function AdminControlPanel({
               onAddCategory(newCatName);
               setNewCatName('');
             }}
-            className="bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-700"
+            className="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700"
           >
             新增分類
           </button>
         </div>
 
-        {/* ✅ 可拖曳排序的分類列表 */}
-        <div className="flex flex-col gap-1.5 pt-1">
+        {/* ✅ 可拖曳排序的分類列表：字體放大、高度上限 + 內部捲動 */}
+        <div className="flex flex-col gap-2 pt-1 max-h-[260px] overflow-y-auto pr-1">
           {categories.map((cat, index) => (
             <div
               key={cat}
@@ -122,12 +122,12 @@ export default function AdminControlPanel({
               onDragStart={() => handleDragStart(index)}
               onDragOver={handleDragOver}
               onDrop={() => handleDrop(index)}
-              className={`flex items-center justify-between bg-white border px-3 py-2 rounded-lg text-xs text-slate-700 font-medium cursor-move transition ${
+              className={`flex items-center justify-between bg-white border px-3 py-2.5 rounded-lg text-sm text-slate-700 font-medium cursor-move transition ${
                 dragIndex === index ? 'opacity-40' : 'opacity-100'
               }`}
             >
               <span className="flex items-center gap-2">
-                <span className="text-slate-300 select-none">⠿</span>
+                <span className="text-slate-300 select-none text-base">⠿</span>
                 {cat}
               </span>
               <button
@@ -135,7 +135,7 @@ export default function AdminControlPanel({
                 onClick={() => {
                   if (confirm(`確定刪除 ${cat} 分類？`)) onDeleteCategory(cat);
                 }}
-                className="text-red-400 hover:text-red-600 hover:bg-red-50 font-black text-lg leading-none w-7 h-7 flex items-center justify-center rounded-full transition"
+                className="text-red-400 hover:text-red-600 hover:bg-red-50 font-black text-xl leading-none w-8 h-8 flex items-center justify-center rounded-full transition"
               >
                 ×
               </button>
