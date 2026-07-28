@@ -120,7 +120,7 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
               <p className="text-xs font-bold text-slate-700 truncate">
                 {course.title} - 課程講義{course.pdfUrls.length > 1 ? ` (${idx + 1})` : ''}
               </p>
-              
+              <a
                 href={url}
                 target="_blank"
                 rel="noreferrer"
