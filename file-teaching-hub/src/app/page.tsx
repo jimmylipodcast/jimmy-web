@@ -22,7 +22,8 @@ export default function Home() {
     deleteCourse,
     togglePin,
     addCategory,
-    deleteCategory
+    deleteCategory,
+    reorderCategories
   } = useBlog();
 
   const [selected, setSelected] = useState('全部文章');
@@ -85,6 +86,7 @@ export default function Home() {
             onAddCategory={addCategory}
             onDeleteCategory={deleteCategory}
             onLogout={() => setIsAdmin(false)}
+            onReorderCategories={reorderCategories}
           />
         )}
 

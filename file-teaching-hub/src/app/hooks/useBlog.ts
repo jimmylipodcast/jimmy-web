@@ -10,7 +10,7 @@ export interface Course {
   content: string;
   imageUrl?: string;
   videoUrl?: string;
-  pdfUrl?: string;
+  pdfUrls?: string[];
   createdAt: string;
   isPinned: boolean;
 }
@@ -32,24 +32,23 @@ export function useBlog() {
 
       if (cError) throw cError;
 
-      // 轉化資料庫欄位名稱符合前端變數
       const cleanedCourses: Course[] = (coursesData || []).map((item: any) => ({
         id: item.id,
         title: item.title,
         courseName: item.course_name,
         content: item.content || '',
-        // ✅ 三個媒體欄位各自獨立轉換，互不覆蓋
         imageUrl: item.image_url || undefined,
         videoUrl: item.video_url || undefined,
-        pdfUrl: item.pdf_url || undefined,
+        pdfUrls: item.pdf_urls || undefined,
         createdAt: item.created_at,
         isPinned: item.is_pinned,
       }));
 
-      // 2. 撈取自訂分類目錄
+      // 2. 撈取自訂分類目錄，並依照 position 排序
       const { data: catsData, error: catError } = await supabase
         .from('categories')
-        .select('name');
+        .select('name, position')
+        .order('position', { ascending: true, nullsFirst: false });
 
       if (catError) throw catError;
 
@@ -62,20 +61,26 @@ export function useBlog() {
     }
   }, []);
 
-// ☁️ 雲端同步：新增文章（圖片上傳 + YouTube 網址 + PDF 上傳，三者互不干擾）
+  // ☁️ 雲端同步：新增文章（圖片上傳 + YouTube 網址 + 多個 PDF 上傳，三者互不干擾）
   const addCourse = useCallback(async (
     newCourse: Course,
-    files?: { imageFile?: File; pdfFile?: File }
+    files?: { imageFile?: File; pdfFiles?: File[] }
   ) => {
     try {
       let finalImageUrl: string | null = null;
-      let finalPdfUrl: string | null = null;
+      const finalPdfUrls: string[] = [];
+
+      // 產生不會撞名的檔名：時間戳 + 隨機字串
+      const makeFileName = (originalName: string) => {
+        const ext = originalName.split('.').pop();
+        const rand = Math.random().toString(36).slice(2, 8);
+        return `${Date.now()}-${rand}.${ext}`;
+      };
 
       // 1. 圖片檔案上傳到 'images' bucket
       if (files?.imageFile) {
         const file = files.imageFile;
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${Date.now()}.${fileExt}`;
+        const filePath = makeFileName(file.name);
 
         const { error: imgUploadError } = await supabase.storage
           .from('images')
@@ -90,26 +95,26 @@ export function useBlog() {
         finalImageUrl = publicUrl;
       }
 
-      // 2. PDF 檔案上傳到 'lectures' bucket（跟原本邏輯相同）
-      if (files?.pdfFile) {
-        const file = files.pdfFile;
-        const fileExt = file.name.split('.').pop();
-        const filePath = `${Date.now()}.${fileExt}`;
+      // 2. 多個 PDF 檔案，逐一上傳到 'lectures' bucket
+      if (files?.pdfFiles && files.pdfFiles.length > 0) {
+        for (const file of files.pdfFiles) {
+          const filePath = makeFileName(file.name);
 
-        const { error: pdfUploadError } = await supabase.storage
-          .from('lectures')
-          .upload(filePath, file);
+          const { error: pdfUploadError } = await supabase.storage
+            .from('lectures')
+            .upload(filePath, file);
 
-        if (pdfUploadError) throw pdfUploadError;
+          if (pdfUploadError) throw pdfUploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('lectures')
-          .getPublicUrl(filePath);
+          const { data: { publicUrl } } = supabase.storage
+            .from('lectures')
+            .getPublicUrl(filePath);
 
-        finalPdfUrl = publicUrl;
+          finalPdfUrls.push(publicUrl);
+        }
       }
 
-      // 3. 寫入資料庫，三個欄位各自獨立
+      // 3. 寫入資料庫，各欄位互不覆蓋
       const { error } = await supabase.from('courses').insert([{
         id: newCourse.id,
         title: newCourse.title,
@@ -117,7 +122,7 @@ export function useBlog() {
         content: newCourse.content,
         image_url: finalImageUrl,
         video_url: newCourse.videoUrl || null,
-        pdf_url: finalPdfUrl,
+        pdf_urls: finalPdfUrls.length > 0 ? finalPdfUrls : null,
         created_at: newCourse.createdAt,
         is_pinned: newCourse.isPinned
       }]);
@@ -158,11 +163,13 @@ export function useBlog() {
     }
   }, [courses, refreshData]);
 
-  // ☁️ 雲端同步：新增分類目錄
+  // ☁️ 雲端同步：新增分類目錄（自動接在最後一個順序）
   const addCategory = useCallback(async (name: string) => {
     if (!name.trim() || categories.includes(name.trim())) return;
     try {
-      const { error } = await supabase.from('categories').insert([{ name: name.trim() }]);
+      const { error } = await supabase
+        .from('categories')
+        .insert([{ name: name.trim(), position: categories.length }]);
       if (error) throw error;
       await refreshData();
     } catch (error) {
@@ -178,6 +185,23 @@ export function useBlog() {
       await refreshData();
     } catch (error) {
       alert('刪除分類失敗，可能該分類下還有文章綁定');
+    }
+  }, [refreshData]);
+
+  // ☁️ 雲端同步：拖曳調整分類順序
+  const reorderCategories = useCallback(async (orderedNames: string[]) => {
+    // 先在畫面上立即更新，操作起來才順暢
+    setCategories(orderedNames);
+    try {
+      await Promise.all(
+        orderedNames.map((name, index) =>
+          supabase.from('categories').update({ position: index }).eq('name', name)
+        )
+      );
+    } catch (error) {
+      console.error('分類排序更新失敗:', error);
+      alert('排序儲存失敗，將還原原本順序');
+      await refreshData();
     }
   }, [refreshData]);
 
@@ -199,6 +223,7 @@ export function useBlog() {
     deleteCourse,
     togglePin,
     addCategory,
-    deleteCategory
+    deleteCategory,
+    reorderCategories
   };
 }

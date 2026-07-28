@@ -8,7 +8,7 @@ interface Course {
   content: string;
   imageUrl?: string;
   videoUrl?: string;
-  pdfUrl?: string;
+  pdfUrls?: string[];
   createdAt: string;
   isPinned: boolean;
 }
@@ -68,7 +68,7 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
         )}
       </div>
 
-      {/* ✅ 圖片：獨立區塊，只要有 imageUrl 就顯示，不受影片/PDF影響 */}
+      {/* ✅ 圖片：獨立區塊，只要有 imageUrl 就顯示 */}
       {course.imageUrl && (
         <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
           <img src={course.imageUrl} alt={course.title} className="w-full h-auto object-cover" />
@@ -84,11 +84,27 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
         </div>
       )}
 
-      {/* ✅ PDF 講義下載：獨立區塊，只要有 pdfUrl 就顯示，可以跟圖片/影片同時出現 */}
-      {course.pdfUrl && (
-        <div className="mt-4 p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500 rounded-2xl border border-slate-100">
-          <p className="text-xs font-bold text-slate-700 truncate">{course.title} - 課程講義</p>
-          <a href={course.pdfUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl whitespace-nowrap">打開講義 ↗</a>
+      {/* ✅ PDF 講義下載：支援同時顯示多個檔案 */}
+      {course.pdfUrls && course.pdfUrls.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {course.pdfUrls.map((url: string, idx: number) => (
+            <div
+              key={idx}
+              className="p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500 rounded-2xl border border-slate-100"
+            >
+              <p className="text-xs font-bold text-slate-700 truncate">
+                {course.title} - 課程講義{course.pdfUrls.length > 1 ? `（${idx + 1}）` : ''}
+              </p>
+              
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl whitespace-nowrap"
+              >
+                打開講義 ↗
+              </a>
+            </div>
+          ))}
         </div>
       )}
 

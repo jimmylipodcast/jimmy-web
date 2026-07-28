@@ -3,10 +3,10 @@ import { useState } from 'react';
 
 interface AdminPanelProps {
   categories: string[];
-  // 💡 onAddCourse 現在多帶一個 imageFile 參數
-  onAddCourse: (course: any, files?: { imageFile?: File; pdfFile?: File }) => void;
+  onAddCourse: (course: any, files?: { imageFile?: File; pdfFiles?: File[] }) => void;
   onAddCategory: (name: string) => void;
   onDeleteCategory: (name: string) => void;
+  onReorderCategories: (orderedNames: string[]) => void;
   onLogout: () => void;
 }
 
@@ -15,6 +15,7 @@ export default function AdminControlPanel({
   onAddCourse,
   onAddCategory,
   onDeleteCategory,
+  onReorderCategories,
   onLogout
 }: AdminPanelProps) {
   const [title, setTitle] = useState('');
@@ -24,12 +25,31 @@ export default function AdminControlPanel({
   const [isPinned, setIsPinned] = useState(false);
   const [newCatName, setNewCatName] = useState('');
 
-  // 📎 圖片與 PDF 都改為檔案狀態
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
 
-  // 🔄 用於發布成功後，強制重置歸零 file input 欄位狀態
   const [fileInputKey, setFileInputKey] = useState(Date.now());
+
+  // 🎯 拖曳排序用的狀態：記錄目前被拖曳的分類索引
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+
+  const handleDragStart = (index: number) => setDragIndex(index);
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); // 必須阻止預設行為，drop 事件才會觸發
+  };
+
+  const handleDrop = (index: number) => {
+    if (dragIndex === null || dragIndex === index) {
+      setDragIndex(null);
+      return;
+    }
+    const newList = [...categories];
+    const [moved] = newList.splice(dragIndex, 1);
+    newList.splice(index, 0, moved);
+    onReorderCategories(newList);
+    setDragIndex(null);
+  };
 
   const handleCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,16 +63,18 @@ export default function AdminControlPanel({
       videoUrl: videoUrl.trim() || undefined,
       createdAt: new Date().toISOString(),
       isPinned
-    }, { imageFile: imageFile || undefined, pdfFile: pdfFile || undefined });
+    }, {
+      imageFile: imageFile || undefined,
+      pdfFiles: pdfFiles.length > 0 ? pdfFiles : undefined
+    });
 
-    // 表單清空重置
     setTitle('');
     setContent('');
     setVideoUrl('');
     setIsPinned(false);
     setImageFile(null);
-    setPdfFile(null);
-    setFileInputKey(Date.now()); // 刷新 key 讓兩個檔案選取器一起清空
+    setPdfFiles([]);
+    setFileInputKey(Date.now());
     alert('✨ 部落格新文章發布成功！已依時間自動排序。');
   };
 
@@ -68,9 +90,9 @@ export default function AdminControlPanel({
         </button>
       </div>
 
-      {/* 目錄分類管理 */}
+      {/* 目錄分類管理：新增輸入框 + 可拖曳排序列表 */}
       <div className="bg-slate-50 p-4 rounded-xl space-y-3">
-        <h4 className="text-xs font-bold text-slate-600">📁 管理目錄分類</h4>
+        <h4 className="text-xs font-bold text-slate-600">📁 管理目錄分類（可拖曳調整順序）</h4>
         <div className="flex gap-2">
           <input
             type="text"
@@ -90,20 +112,34 @@ export default function AdminControlPanel({
             新增分類
           </button>
         </div>
-        <div className="flex flex-wrap gap-2 pt-1">
-          {categories.map(cat => (
-            <span key={cat} className="inline-flex items-center gap-1.5 bg-white border px-2.5 py-1 rounded-lg text-xs text-slate-600 font-medium">
-              {cat}
+
+        {/* ✅ 可拖曳排序的分類列表 */}
+        <div className="flex flex-col gap-1.5 pt-1">
+          {categories.map((cat, index) => (
+            <div
+              key={cat}
+              draggable
+              onDragStart={() => handleDragStart(index)}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(index)}
+              className={`flex items-center justify-between bg-white border px-3 py-2 rounded-lg text-xs text-slate-700 font-medium cursor-move transition ${
+                dragIndex === index ? 'opacity-40' : 'opacity-100'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-slate-300 select-none">⠿</span>
+                {cat}
+              </span>
               <button
                 type="button"
                 onClick={() => {
-                  if (confirm(`確定刪換 ${cat} 分類？`)) onDeleteCategory(cat);
+                  if (confirm(`確定刪除 ${cat} 分類？`)) onDeleteCategory(cat);
                 }}
-                className="text-red-400 hover:text-red-600 font-bold ml-1"
+                className="text-red-400 hover:text-red-600 font-bold px-2"
               >
                 ×
               </button>
-            </span>
+            </div>
           ))}
         </div>
       </div>
@@ -137,7 +173,7 @@ export default function AdminControlPanel({
           </div>
         </div>
 
-        {/* ✅ 圖片：改成從電腦上傳 */}
+        {/* 圖片：從電腦上傳 */}
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-slate-500 flex items-center gap-1">
             🖼 上傳圖片檔案（選填，可與影片/PDF同時使用）
@@ -155,7 +191,7 @@ export default function AdminControlPanel({
           />
         </div>
 
-        {/* YouTube 影片網址：維持文字輸入即可，網址本身就很短 */}
+        {/* YouTube 影片網址 */}
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-slate-500">YouTube 影片網址（選填，可與圖片/PDF同時使用）</label>
           <input
@@ -167,22 +203,28 @@ export default function AdminControlPanel({
           />
         </div>
 
-        {/* 📎 PDF 講義上傳區塊 */}
+        {/* ✅ PDF 講義：改為可一次選取多個檔案 */}
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-indigo-600 flex items-center gap-1">
-            📎 上傳 PDF 講義檔案（選填，可與圖片/影片同時使用）
+            📎 上傳 PDF 講義檔案（可一次選取多個，選填）
           </label>
           <input
             key={`pdf-${fileInputKey}`}
             type="file"
             accept=".pdf"
+            multiple
             onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                setPdfFile(e.target.files[0]);
+              if (e.target.files) {
+                setPdfFiles(Array.from(e.target.files));
               }
             }}
             className="border border-dashed border-indigo-200 p-2 rounded-xl text-xs bg-indigo-50/20 text-slate-600 focus:outline-indigo-500 cursor-pointer"
           />
+          {pdfFiles.length > 0 && (
+            <p className="text-[11px] text-slate-400 pt-0.5">
+              已選取 {pdfFiles.length} 個檔案：{pdfFiles.map(f => f.name).join('、')}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col space-y-1">
