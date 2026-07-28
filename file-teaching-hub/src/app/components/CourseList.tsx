@@ -118,7 +118,7 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
               className="p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500 rounded-2xl border border-slate-100"
             >
               <p className="text-xs font-bold text-slate-700 truncate">
-                {course.title} - 課程講義{course.pdfUrls.length > 1 ? `（${idx + 1}）` : ''}
+                {course.title} - 課程講義{course.pdfUrls.length > 1 ? ` (${idx + 1})` : ''}
               </p>
               
                 href={url}
