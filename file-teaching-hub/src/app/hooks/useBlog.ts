@@ -8,7 +8,9 @@ export interface Course {
   title: string;
   courseName: string;
   content: string;
-  mediaUrl?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  pdfUrl?: string;
   createdAt: string;
   isPinned: boolean;
 }
@@ -22,12 +24,12 @@ export function useBlog() {
   const refreshData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       // 1. 撈取文章
       const { data: coursesData, error: cError } = await supabase
         .from('courses')
         .select('*');
-      
+
       if (cError) throw cError;
 
       // 轉化資料庫欄位名稱符合前端變數
@@ -36,7 +38,10 @@ export function useBlog() {
         title: item.title,
         courseName: item.course_name,
         content: item.content || '',
-        mediaUrl: item.media_url || undefined,
+        // ✅ 三個媒體欄位各自獨立轉換，互不覆蓋
+        imageUrl: item.image_url || undefined,
+        videoUrl: item.video_url || undefined,
+        pdfUrl: item.pdf_url || undefined,
         createdAt: item.created_at,
         isPinned: item.is_pinned,
       }));
@@ -45,7 +50,7 @@ export function useBlog() {
       const { data: catsData, error: catError } = await supabase
         .from('categories')
         .select('name');
-      
+
       if (catError) throw catError;
 
       setCourses(cleanedCourses);
@@ -57,40 +62,62 @@ export function useBlog() {
     }
   }, []);
 
-  // ☁️ 雲端同步：新增文章（支援 PDF 講義上傳）
-  const addCourse = useCallback(async (newCourse: Course, file?: File) => {
+// ☁️ 雲端同步：新增文章（圖片上傳 + YouTube 網址 + PDF 上傳，三者互不干擾）
+  const addCourse = useCallback(async (
+    newCourse: Course,
+    files?: { imageFile?: File; pdfFile?: File }
+  ) => {
     try {
-      let finalMediaUrl = newCourse.mediaUrl || null;
+      let finalImageUrl: string | null = null;
+      let finalPdfUrl: string | null = null;
 
-      // 1. 如果有選取檔案，先上傳到 Supabase Storage
-      if (file) {
-        // 用時間戳加上原本的檔名，避免重複檔名衝突
+      // 1. 圖片檔案上傳到 'images' bucket
+      if (files?.imageFile) {
+        const file = files.imageFile;
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const filePath = `${Date.now()}.${fileExt}`;
 
-        // 上傳檔案到 'lectures' 儲存桶
-        const { error: uploadError, data } = await supabase.storage
+        const { error: imgUploadError } = await supabase.storage
+          .from('images')
+          .upload(filePath, file);
+
+        if (imgUploadError) throw imgUploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('images')
+          .getPublicUrl(filePath);
+
+        finalImageUrl = publicUrl;
+      }
+
+      // 2. PDF 檔案上傳到 'lectures' bucket（跟原本邏輯相同）
+      if (files?.pdfFile) {
+        const file = files.pdfFile;
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${Date.now()}.${fileExt}`;
+
+        const { error: pdfUploadError } = await supabase.storage
           .from('lectures')
           .upload(filePath, file);
 
-        if (uploadError) throw uploadError;
+        if (pdfUploadError) throw pdfUploadError;
 
-        // 取得上傳成功後的公開下載網址
         const { data: { publicUrl } } = supabase.storage
           .from('lectures')
           .getPublicUrl(filePath);
 
-        finalMediaUrl = publicUrl;
+        finalPdfUrl = publicUrl;
       }
 
-      // 2. 將文章資料（包含剛剛取得的 PDF 網址）寫入資料庫
+      // 3. 寫入資料庫，三個欄位各自獨立
       const { error } = await supabase.from('courses').insert([{
         id: newCourse.id,
         title: newCourse.title,
         course_name: newCourse.courseName,
         content: newCourse.content,
-        media_url: finalMediaUrl, // 👈 這裡會自動填入 PDF 網址
+        image_url: finalImageUrl,
+        video_url: newCourse.videoUrl || null,
+        pdf_url: finalPdfUrl,
         created_at: newCourse.createdAt,
         is_pinned: newCourse.isPinned
       }]);

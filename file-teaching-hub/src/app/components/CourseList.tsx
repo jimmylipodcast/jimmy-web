@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 
 interface Course {
@@ -7,7 +6,9 @@ interface Course {
   title: string;
   courseName: string;
   content: string;
-  mediaUrl?: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  pdfUrl?: string;
   createdAt: string;
   isPinned: boolean;
 }
@@ -35,15 +36,13 @@ function getEmbedYoutubeUrl(url: string) {
 
 function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const embedYoutube = getEmbedYoutubeUrl(course.mediaUrl || '');
-  const isImage = course.mediaUrl && !embedYoutube && !course.mediaUrl.toLowerCase().includes('.pdf');
+  const embedYoutube = getEmbedYoutubeUrl(course.videoUrl || '');
   const shouldTruncate = course.content.length > 120;
   const displayedContent = (shouldTruncate && !isExpanded) ? `${course.content.substring(0, 120)}...` : course.content;
 
   return (
-    // 🎯 關鍵修正：加上 id 屬性，讓頁面能夠精準跳轉到此區塊
-    <article 
-      id={`course-card-${course.id}`} 
+    <article
+      id={`course-card-${course.id}`}
       className="bg-white p-7 rounded-3xl border border-slate-100/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
     >
       <div className="flex items-center justify-between text-xs text-slate-400 font-bold tracking-wide mb-3">
@@ -69,18 +68,27 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
         )}
       </div>
 
-      {course.mediaUrl && (
+      {/* ✅ 圖片：獨立區塊，只要有 imageUrl 就顯示，不受影片/PDF影響 */}
+      {course.imageUrl && (
         <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-          {embedYoutube ? (
-            <div className="relative aspect-video w-full"><iframe src={embedYoutube} className="absolute inset-0 w-full h-full" allowFullScreen /></div>
-          ) : course.mediaUrl.toLowerCase().includes('.pdf') ? (
-            <div className="p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500">
-              <p className="text-xs font-bold text-slate-700 truncate">{course.title} - 課程講義</p>
-              <a href={course.mediaUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl">打開講義 ↗</a>
-            </div>
-          ) : isImage ? (
-            <img src={course.mediaUrl} alt={course.title} className="w-full h-auto object-cover" />
-          ) : null}
+          <img src={course.imageUrl} alt={course.title} className="w-full h-auto object-cover" />
+        </div>
+      )}
+
+      {/* ✅ YouTube 影片：獨立區塊，只要有 videoUrl 就顯示 */}
+      {embedYoutube && (
+        <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+          <div className="relative aspect-video w-full">
+            <iframe src={embedYoutube} className="absolute inset-0 w-full h-full" allowFullScreen />
+          </div>
+        </div>
+      )}
+
+      {/* ✅ PDF 講義下載：獨立區塊，只要有 pdfUrl 就顯示，可以跟圖片/影片同時出現 */}
+      {course.pdfUrl && (
+        <div className="mt-4 p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500 rounded-2xl border border-slate-100">
+          <p className="text-xs font-bold text-slate-700 truncate">{course.title} - 課程講義</p>
+          <a href={course.pdfUrl} target="_blank" rel="noreferrer" className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl whitespace-nowrap">打開講義 ↗</a>
         </div>
       )}
 
@@ -102,7 +110,6 @@ export default function CourseList({ courses, isAdmin, onDelete, onTogglePin }: 
   if (!courses || courses.length === 0) {
     return <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center text-slate-400 font-bold">目前沒有發布的文章。</div>;
   }
-
   return (
     <div className="space-y-6">
       {courses.map((course) => (
