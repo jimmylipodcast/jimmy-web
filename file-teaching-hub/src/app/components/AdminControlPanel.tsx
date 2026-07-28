@@ -135,7 +135,7 @@ export default function AdminControlPanel({
                 onClick={() => {
                   if (confirm(`確定刪除 ${cat} 分類？`)) onDeleteCategory(cat);
                 }}
-                className="text-red-400 hover:text-red-600 font-bold px-2"
+                className="text-red-400 hover:text-red-600 hover:bg-red-50 font-black text-lg leading-none w-7 h-7 flex items-center justify-center rounded-full transition"
               >
                 ×
               </button>

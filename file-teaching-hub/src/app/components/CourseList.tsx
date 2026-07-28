@@ -34,6 +34,34 @@ function getEmbedYoutubeUrl(url: string) {
   return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
 }
 
+// 🎯 兩段式刪除確認按鈕：第一次點擊進入警示狀態，3 秒內再點一次才會真的刪除
+function DeleteButton({ onDelete }: { onDelete: () => void }) {
+  const [confirming, setConfirming] = useState(false);
+
+  const handleClick = () => {
+    if (!confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 3000);
+      return;
+    }
+    onDelete();
+    setConfirming(false);
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className={`text-xs font-bold px-4 py-2 rounded-xl transition ${
+        confirming
+          ? 'bg-red-600 text-white animate-pulse'
+          : 'text-red-500 bg-red-50 hover:bg-red-500 hover:text-white'
+      }`}
+    >
+      {confirming ? '⚠️ 再點一次確認刪除' : '刪除文章'}
+    </button>
+  );
+}
+
 function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
   const [isExpanded, setIsExpanded] = useState(false);
   const embedYoutube = getEmbedYoutubeUrl(course.videoUrl || '');
@@ -68,14 +96,12 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
         )}
       </div>
 
-      {/* ✅ 圖片：獨立區塊，只要有 imageUrl 就顯示 */}
       {course.imageUrl && (
         <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
           <img src={course.imageUrl} alt={course.title} className="w-full h-auto object-cover" />
         </div>
       )}
 
-      {/* ✅ YouTube 影片：獨立區塊，只要有 videoUrl 就顯示 */}
       {embedYoutube && (
         <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
           <div className="relative aspect-video w-full">
@@ -84,7 +110,6 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
         </div>
       )}
 
-      {/* ✅ PDF 講義下載：支援同時顯示多個檔案 */}
       {course.pdfUrls && course.pdfUrls.length > 0 && (
         <div className="mt-4 space-y-2">
           {course.pdfUrls.map((url: string, idx: number) => (
@@ -95,7 +120,7 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
               <p className="text-xs font-bold text-slate-700 truncate">
                 {course.title} - 課程講義{course.pdfUrls.length > 1 ? `（${idx + 1}）` : ''}
               </p>
-              
+              <a
                 href={url}
                 target="_blank"
                 rel="noreferrer"
@@ -113,9 +138,7 @@ function CourseCard({ course, isAdmin, onDelete, onTogglePin }: any) {
           <button onClick={() => onTogglePin(course.id)} className={`text-xs font-bold px-3 py-2 rounded-xl transition ${course.isPinned ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-600'}`}>
             {course.isPinned ? '取消置頂' : '設為置頂'}
           </button>
-          <button onClick={() => { if(confirm('確定要刪除嗎？')) onDelete(course.id); }} className="text-xs text-red-500 font-bold bg-red-50 hover:bg-red-500 hover:text-white px-4 py-2 rounded-xl transition">
-            刪除文章
-          </button>
+          <DeleteButton onDelete={() => onDelete(course.id)} />
         </div>
       )}
     </article>
