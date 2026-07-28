@@ -27,7 +27,7 @@ export default function PodcastWidget() {
           href="https://www.youtube.com/@teacher_jimmy" target="_blank" rel="noopener noreferrer"
           className="block text-center bg-red-500 hover:bg-red-600 text-white font-bold text-xs py-2 rounded-xl transition"
         >
-          立即訂閱頻道 →
+          立即前往頻道 →
         </a>
       </div>
 
