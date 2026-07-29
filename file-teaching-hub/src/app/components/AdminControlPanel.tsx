@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import RichTextEditor from './RichTextEditor';
 
 interface AdminPanelProps {
   categories: string[];
@@ -229,13 +230,7 @@ export default function AdminControlPanel({
 
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-slate-500">文章詳細內容說明</label>
-          <textarea
-            rows={4}
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="請輸入文案內容..."
-            className="border border-slate-200 p-2 rounded-xl text-xs focus:outline-indigo-500"
-          />
+          <RichTextEditor value={content} onChange={setContent} placeholder="請輸入文案內容..." />
         </div>
 
         <div className="flex items-center justify-between pt-2">
