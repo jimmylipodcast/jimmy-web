@@ -2,18 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../../utils/supabase';
+import { uploadFileToStorage, uploadMultipleFiles } from '../../utils/uploadFile';
+import { Course } from '../lib/types';
 
-export interface Course {
-  id: string;
-  title: string;
-  courseName: string;
-  content: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  pdfUrls?: string[];
-  createdAt: string;
-  isPinned: boolean;
-}
+export type { Course };
 
 export function useBlog() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -58,53 +50,20 @@ export function useBlog() {
     }
   }, []);
 
-  const makeFileName = (originalName: string) => {
-    const ext = originalName.split('.').pop();
-    const rand = Math.random().toString(36).slice(2, 8);
-    return `${Date.now()}-${rand}.${ext}`;
-  };
-
   const addCourse = useCallback(async (
     newCourse: Course,
     files?: { imageFile?: File; pdfFiles?: File[] }
   ) => {
     try {
       let finalImageUrl: string | null = null;
-      const finalPdfUrls: string[] = [];
+      let finalPdfUrls: string[] = [];
 
       if (files?.imageFile) {
-        const file = files.imageFile;
-        const filePath = makeFileName(file.name);
-
-        const { error: imgUploadError } = await supabase.storage
-          .from('images')
-          .upload(filePath, file);
-
-        if (imgUploadError) throw imgUploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('images')
-          .getPublicUrl(filePath);
-
-        finalImageUrl = publicUrl;
+        finalImageUrl = await uploadFileToStorage(files.imageFile, 'images');
       }
 
       if (files?.pdfFiles && files.pdfFiles.length > 0) {
-        for (const file of files.pdfFiles) {
-          const filePath = makeFileName(file.name);
-
-          const { error: pdfUploadError } = await supabase.storage
-            .from('lectures')
-            .upload(filePath, file);
-
-          if (pdfUploadError) throw pdfUploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('lectures')
-            .getPublicUrl(filePath);
-
-          finalPdfUrls.push(publicUrl);
-        }
+        finalPdfUrls = await uploadMultipleFiles(files.pdfFiles, 'lectures');
       }
 
       const { error } = await supabase.from('courses').insert([{
@@ -128,7 +87,6 @@ export function useBlog() {
     }
   }, [refreshData]);
 
-  // ☁️ 雲端同步：修改文章（可更換圖片、增刪 PDF）
   const updateCourse = useCallback(async (
     id: string,
     fields: {
@@ -146,44 +104,16 @@ export function useBlog() {
       const target = courses.find(c => c.id === id);
       let finalImageUrl: string | null = target?.imageUrl || null;
 
-      // 1. 選了新圖片就上傳並取代；勾選移除就清空
       if (files?.imageFile) {
-        const file = files.imageFile;
-        const filePath = makeFileName(file.name);
-
-        const { error: imgUploadError } = await supabase.storage
-          .from('images')
-          .upload(filePath, file);
-
-        if (imgUploadError) throw imgUploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('images')
-          .getPublicUrl(filePath);
-
-        finalImageUrl = publicUrl;
+        finalImageUrl = await uploadFileToStorage(files.imageFile, 'images');
       } else if (fields.removeImage) {
         finalImageUrl = null;
       }
 
-      // 2. 保留使用者留下的舊 PDF，加上新上傳的
-      const finalPdfUrls: string[] = [...fields.keptPdfUrls];
+      let finalPdfUrls: string[] = [...fields.keptPdfUrls];
       if (files?.pdfFiles && files.pdfFiles.length > 0) {
-        for (const file of files.pdfFiles) {
-          const filePath = makeFileName(file.name);
-
-          const { error: pdfUploadError } = await supabase.storage
-            .from('lectures')
-            .upload(filePath, file);
-
-          if (pdfUploadError) throw pdfUploadError;
-
-          const { data: { publicUrl } } = supabase.storage
-            .from('lectures')
-            .getPublicUrl(filePath);
-
-          finalPdfUrls.push(publicUrl);
-        }
+        const newUrls = await uploadMultipleFiles(files.pdfFiles, 'lectures');
+        finalPdfUrls = [...finalPdfUrls, ...newUrls];
       }
 
       const { error } = await supabase.from('courses').update({

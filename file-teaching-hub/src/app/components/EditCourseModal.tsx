@@ -2,17 +2,7 @@
 import { useState } from 'react';
 import RichTextEditor from './RichTextEditor';
 
-interface Course {
-  id: string;
-  title: string;
-  courseName: string;
-  content: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  pdfUrls?: string[];
-  createdAt: string;
-  isPinned: boolean;
-}
+import { Course } from '../lib/types';
 
 interface EditCourseModalProps {
   course: Course;

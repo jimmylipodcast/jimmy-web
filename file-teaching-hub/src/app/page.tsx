@@ -4,9 +4,7 @@ import { useState, useMemo } from 'react';
 import { useBlog } from './hooks/useBlog'; // 修正：具名導入
 
 import CourseHeader from './components/CourseHeader';
-import LatestAnnouncement from './components/LatestAnnouncement';
 import CourseList from './components/CourseList';
-
 import CategorySelector from './components/CategorySelector';
 import PodcastWidget from './components/PodcastWidget';
 import AdminControlPanel from './components/AdminControlPanel';
