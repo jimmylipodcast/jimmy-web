@@ -36,6 +36,45 @@ function getEmbedYoutubeUrl(url: string) {
   return videoId ? 'https://www.youtube.com/embed/' + videoId : null;
 }
 
+// 自動偵測純文字中的網址，轉換成可點擊、有顏色的超連結（略過本來就已經是 <a> 標籤的部分）
+function linkifyHtml(html: string): string {
+  if (!html) return html;
+  const urlRegex = /((https?:\/\/)[^\s<]+)/g;
+  const parts = html.split(/(<[^>]+>)/g);
+  let insideAnchor = false;
+
+  return parts
+    .map((part) => {
+      if (part.startsWith('<')) {
+        const tagLower = part.toLowerCase();
+        if (tagLower.startsWith('<a')) insideAnchor = true;
+        if (tagLower.startsWith('</a')) insideAnchor = false;
+        return part;
+      }
+      if (insideAnchor) return part;
+
+      return part.replace(urlRegex, (match) => {
+        // 把網址結尾常見的標點符號（句號、逗號、括號等）排除在連結之外
+        let url = match;
+        let trailing = '';
+        const trailingChars = ['.', ',', ')', '，', '。', '！', '？'];
+        while (url.length > 0 && trailingChars.includes(url[url.length - 1])) {
+          trailing = url[url.length - 1] + trailing;
+          url = url.slice(0, -1);
+        }
+        return (
+          '<a href="' +
+          url +
+          '" target="_blank" rel="noreferrer" style="color:#4f46e5; text-decoration: underline; font-weight: 600;">' +
+          url +
+          '</a>' +
+          trailing
+        );
+      });
+    })
+    .join('');
+}
+
 function DeleteButton({ onDelete }: { onDelete: () => void }) {
   const [confirming, setConfirming] = useState(false);
 
@@ -91,7 +130,7 @@ function CourseCard({ course, categories, isAdmin, onDelete, onTogglePin, onUpda
               'text-slate-600 text-sm md:text-base leading-relaxed overflow-hidden transition-all duration-300 ' +
               (isExpanded ? 'max-h-[5000px]' : 'max-h-24')
             }
-            dangerouslySetInnerHTML={{ __html: course.content }}
+            dangerouslySetInnerHTML={{ __html: linkifyHtml(course.content)}}
           />
           <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs font-bold text-indigo-500 hover:text-indigo-700 transition pt-1 block">
             {isExpanded ? '收合文章' : '閱讀全文...'}
