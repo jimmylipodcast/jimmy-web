@@ -8,9 +8,16 @@ interface MobileSidebarDrawerProps {
 export default function MobileSidebarDrawer({ children }: MobileSidebarDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // 只要點擊到抽屜內容中的「按鈕」，就視為選擇了分類，自動收合抽屜
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <div className="lg:hidden">
-      {/* 懸浮的三槓按鈕，只在手機/平板寬度顯示 */}
       <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 left-6 z-40 bg-slate-800 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-600 transition active:scale-95"
@@ -25,14 +32,15 @@ export default function MobileSidebarDrawer({ children }: MobileSidebarDrawerPro
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex">
-          {/* 背景遮罩，點擊可關閉 */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-xs"
+            className="absolute inset-0 bg-black/20 backdrop-blur-xs"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* 左側滑出的抽屜本體 */}
-          <div className="relative bg-slate-50 w-[82%] max-w-xs h-full overflow-y-auto p-5 space-y-6 animate-in slide-in-from-left duration-200 shadow-2xl">
+          <div
+            className="relative bg-slate-50 w-[82%] max-w-xs h-full overflow-y-auto p-5 space-y-6 animate-in slide-in-from-left duration-200 shadow-2xl"
+            onClick={handleContentClick}
+          >
             <div className="flex justify-between items-center">
               <h3 className="font-black text-slate-800 text-sm">選單</h3>
               <button
