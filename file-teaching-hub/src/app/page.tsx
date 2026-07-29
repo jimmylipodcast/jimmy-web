@@ -73,7 +73,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 py-16 px-6 antialiased selection:bg-indigo-500 selection:text-white">
+    <main className="min-h-screen bg-slate-50 py-16 px-6 pb-24 antialiased selection:bg-indigo-500 selection:text-white">
       <div className="max-w-5xl mx-auto space-y-10">
         <CourseHeader
           searchQuery={search}

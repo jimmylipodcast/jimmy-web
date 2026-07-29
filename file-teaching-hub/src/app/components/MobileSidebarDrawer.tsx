@@ -20,7 +20,7 @@ export default function MobileSidebarDrawer({ children }: MobileSidebarDrawerPro
     <div className="lg:hidden">
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-40 bg-slate-800 text-white w-12 h-12 rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-600 transition active:scale-95"
+        className="fixed bottom-5 right-5 z-40 bg-slate-800/70 backdrop-blur-sm text-white w-11 h-11 rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-600 hover:bg-opacity-100 transition active:scale-95"
         aria-label="開啟分類選單"
       >
         <div className="space-y-1">
