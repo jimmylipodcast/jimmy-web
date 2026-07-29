@@ -12,6 +12,8 @@ import PodcastWidget from './components/PodcastWidget';
 import AdminControlPanel from './components/AdminControlPanel';
 import AdminLoginModal from './components/AdminLoginModal';
 
+import MobileSidebarDrawer from './components/MobileSidebarDrawer';
+
 export default function Home() {
   const {
     courses,
@@ -115,27 +117,38 @@ export default function Home() {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-              <div className="lg:col-span-2 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 space-y-6">
               <CourseList
                 courses={sortedList}
-                categories={categories} 
+                categories={categories}
                 isAdmin={isAdmin}
                 onDelete={deleteCourse}
                 onTogglePin={togglePin}
-                onUpdate={updateCourse}  
+                onUpdate={updateCourse}
               />
-              </div>
-
-              <div className="space-y-6 sticky top-6">
-                <CategorySelector
-                  uniqueCourseNames={uniqueCourseNames}
-                  selected={selected}
-                  onSelect={setSelected}
-                />
-                <PodcastWidget />
-              </div>
             </div>
+
+            {/* 桌面版：維持原本固定在右側的側邊欄，手機寬度時隱藏 */}
+            <div className="hidden lg:block space-y-6 sticky top-6">
+              <CategorySelector
+                uniqueCourseNames={uniqueCourseNames}
+                selected={selected}
+                onSelect={setSelected}
+              />
+              <PodcastWidget />
+            </div>
+          </div>
+
+          {/* 手機版：懸浮三槓按鈕 + 抽屜選單，桌面寬度時隱藏 */}
+          <MobileSidebarDrawer>
+            <CategorySelector
+              uniqueCourseNames={uniqueCourseNames}
+              selected={selected}
+              onSelect={setSelected}
+            />
+            <PodcastWidget />
+          </MobileSidebarDrawer>
           </>
         )}
       </div>
