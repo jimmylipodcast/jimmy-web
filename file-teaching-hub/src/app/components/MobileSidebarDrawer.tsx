@@ -33,7 +33,7 @@ export default function MobileSidebarDrawer({ children }: MobileSidebarDrawerPro
       {isOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-xs"
+            className="absolute inset-0 bg-black/10 backdrop-blur-xs"
             onClick={() => setIsOpen(false)}
           />
 
