@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import RichTextEditor from './RichTextEditor';
+import CategoryManager from './CategoryManager';
 
 interface AdminPanelProps {
   categories: string[];
@@ -24,33 +25,11 @@ export default function AdminControlPanel({
   const [content, setContent] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [isPinned, setIsPinned] = useState(false);
-  const [newCatName, setNewCatName] = useState('');
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
 
   const [fileInputKey, setFileInputKey] = useState(Date.now());
-
-  // 🎯 拖曳排序用的狀態：記錄目前被拖曳的分類索引
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-
-  const handleDragStart = (index: number) => setDragIndex(index);
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault(); // 必須阻止預設行為，drop 事件才會觸發
-  };
-
-  const handleDrop = (index: number) => {
-    if (dragIndex === null || dragIndex === index) {
-      setDragIndex(null);
-      return;
-    }
-    const newList = [...categories];
-    const [moved] = newList.splice(dragIndex, 1);
-    newList.splice(index, 0, moved);
-    onReorderCategories(newList);
-    setDragIndex(null);
-  };
 
   const handleCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,59 +70,12 @@ export default function AdminControlPanel({
         </button>
       </div>
 
-    {/* 目錄分類管理：新增輸入框 + 可拖曳排序列表 */}
-      <div className="bg-slate-50 p-4 rounded-xl space-y-3">
-        <h4 className="text-sm font-bold text-slate-600">📁 管理目錄分類（可拖曳調整順序）</h4>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newCatName}
-            onChange={(e) => setNewCatName(e.target.value)}
-            placeholder="新增自訂分類名稱 (例如: 化學高三)"
-            className="border bg-white border-slate-200 p-2.5 rounded-xl text-sm flex-1 focus:outline-indigo-500"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              onAddCategory(newCatName);
-              setNewCatName('');
-            }}
-            className="bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-700"
-          >
-            新增分類
-          </button>
-        </div>
-
-        {/* ✅ 可拖曳排序的分類列表：字體放大、高度上限 + 內部捲動 */}
-        <div className="flex flex-col gap-2 pt-1 max-h-[260px] overflow-y-auto pr-1">
-          {categories.map((cat, index) => (
-            <div
-              key={cat}
-              draggable
-              onDragStart={() => handleDragStart(index)}
-              onDragOver={handleDragOver}
-              onDrop={() => handleDrop(index)}
-              className={`flex items-center justify-between bg-white border px-3 py-2.5 rounded-lg text-sm text-slate-700 font-medium cursor-move transition ${
-                dragIndex === index ? 'opacity-40' : 'opacity-100'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span className="text-slate-300 select-none text-base">⠿</span>
-                {cat}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm(`確定刪除 ${cat} 分類？`)) onDeleteCategory(cat);
-                }}
-                className="text-red-400 hover:text-red-600 hover:bg-red-50 font-black text-xl leading-none w-8 h-8 flex items-center justify-center rounded-full transition"
-              >
-                ×
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      <CategoryManager
+        categories={categories}
+        onAddCategory={onAddCategory}
+        onDeleteCategory={onDeleteCategory}
+        onReorderCategories={onReorderCategories}
+      />
 
       {/* 發布新文章講義 */}
       <form onSubmit={handleCourseSubmit} className="space-y-4">
@@ -174,7 +106,6 @@ export default function AdminControlPanel({
           </div>
         </div>
 
-        {/* 圖片：從電腦上傳 */}
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-slate-500 flex items-center gap-1">
             🖼 上傳圖片檔案（選填，可與影片/PDF同時使用）
@@ -192,7 +123,6 @@ export default function AdminControlPanel({
           />
         </div>
 
-        {/* YouTube 影片網址 */}
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-slate-500">YouTube 影片網址（選填，可與圖片/PDF同時使用）</label>
           <input
@@ -204,7 +134,6 @@ export default function AdminControlPanel({
           />
         </div>
 
-        {/* ✅ PDF 講義：改為可一次選取多個檔案 */}
         <div className="flex flex-col space-y-1">
           <label className="text-xs font-bold text-indigo-600 flex items-center gap-1">
             📎 上傳 PDF 講義檔案（可一次選取多個，選填）
