@@ -115,7 +115,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         contentEditable
         onInput={handleInput}
         data-placeholder={placeholder || '請輸入內容...'}
-        className="min-h-[120px] max-h-[400px] overflow-y-auto p-3 text-xs text-slate-700 leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-300"
+        className="course-content min-h-[120px] max-h-[400px] overflow-y-auto p-3 text-xs text-slate-700 leading-relaxed focus:outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-slate-300"
         suppressContentEditableWarning
       />
     </div>

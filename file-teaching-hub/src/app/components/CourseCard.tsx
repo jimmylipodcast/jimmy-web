@@ -66,7 +66,7 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
           <h3 className="font-black text-slate-800 text-lg md:text-xl leading-snug">{course.title}</h3>
           <div
             className={
-              'text-slate-600 text-sm md:text-base leading-relaxed overflow-hidden transition-all duration-300 ' +
+              'course-content text-slate-600 text-sm md:text-base leading-relaxed overflow-hidden transition-all duration-300 ' +
               (isExpanded ? 'max-h-[5000px]' : 'max-h-24')
             }
             dangerouslySetInnerHTML={{ __html: linkifyHtml(normalizeContentHtml(course.content)) }}
