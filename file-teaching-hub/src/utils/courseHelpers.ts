@@ -49,3 +49,17 @@ export function linkifyHtml(html: string): string {
     })
     .join('');
 }
+
+// 將舊版純文字內容轉為安全的 HTML，並把換行字元轉成 <br/>；已經是 HTML 格式的內容則不做任何處理
+export function normalizeContentHtml(content: string): string {
+  if (!content) return content;
+  const hasHtmlTags = /<[a-z][\s\S]*>/i.test(content);
+  if (hasHtmlTags) return content;
+
+  const escaped = content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  return escaped.replace(/\n/g, '<br/>');
+}

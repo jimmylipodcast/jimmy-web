@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import EditCourseModal from './EditCourseModal';
-import { getEmbedYoutubeUrl, linkifyHtml } from '../../utils/courseHelpers';
+import { getEmbedYoutubeUrl, linkifyHtml, normalizeContentHtml } from '../../utils/courseHelpers';
 import { Course } from '../lib/types';
 
 interface CourseCardProps {
@@ -69,7 +69,7 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
               'text-slate-600 text-sm md:text-base leading-relaxed overflow-hidden transition-all duration-300 ' +
               (isExpanded ? 'max-h-[5000px]' : 'max-h-24')
             }
-            dangerouslySetInnerHTML={{ __html: linkifyHtml(course.content) }}
+            dangerouslySetInnerHTML={{ __html: linkifyHtml(normalizeContentHtml(course.content)) }}
           />
           <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs font-bold text-indigo-500 hover:text-indigo-700 transition pt-1 block">
             {isExpanded ? '收合文章' : '閱讀全文...'}

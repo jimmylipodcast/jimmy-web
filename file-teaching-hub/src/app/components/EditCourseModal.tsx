@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import RichTextEditor from './RichTextEditor';
-
+import { normalizeContentHtml } from '../../utils/courseHelpers';
 import { Course } from '../lib/types';
 
 interface EditCourseModalProps {
@@ -26,7 +26,7 @@ interface EditCourseModalProps {
 export default function EditCourseModal({ course, categories, onClose, onUpdate }: EditCourseModalProps) {
   const [title, setTitle] = useState(course.title);
   const [courseName, setCourseName] = useState(course.courseName);
-  const [content, setContent] = useState(course.content);
+  const [content, setContent] =  useState(normalizeContentHtml(course.content));
   const [videoUrl, setVideoUrl] = useState(course.videoUrl || '');
   const [isPinned, setIsPinned] = useState(course.isPinned);
 
