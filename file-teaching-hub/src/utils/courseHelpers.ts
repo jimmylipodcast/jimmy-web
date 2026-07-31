@@ -50,16 +50,18 @@ export function linkifyHtml(html: string): string {
     .join('');
 }
 
-// 將舊版純文字內容轉為安全的 HTML，並把換行字元轉成 <br/>；已經是 HTML 格式的內容則不做任何處理
+// 將裸露的換行字元（\n）轉成 <br/>，不論內容是純文字或已含 HTML 樣式標籤都適用
+// 只逃逸「不在標籤內」的特殊符號，避免破壞既有的 HTML 標籤與樣式
 export function normalizeContentHtml(content: string): string {
   if (!content) return content;
-  const hasHtmlTags = /<[a-z][\s\S]*>/i.test(content);
-  if (hasHtmlTags) return content;
 
-  const escaped = content
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  const hasBlockElements = /<(div|p|br)\b/i.test(content);
+  if (hasBlockElements) {
+    // 已經有真正的換行相關標籤（代表是用編輯器正常換行發布的），不用再處理
+    return content;
+  }
 
-  return escaped.replace(/\n/g, '<br/>');
+  // 沒有換行標籤的情況：可能是純文字舊文章，也可能是「只有樣式、沒換行」的內容
+  // 兩種情況都只需要把 \n 轉成 <br/>，不會動到既有的樣式標籤（如 <span style="color:...">）
+  return content.replace(/\n/g, '<br/>');
 }
