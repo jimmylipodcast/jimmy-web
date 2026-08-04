@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     siteName: "高校化學事",
     images: [
       {
-        url: "https://www.jimmylipodcast.tw/og-image.jpg", // 記得放一張圖片在 public 資料夾並命名為 og-image.jpg
+        url: "https://www.jimmylipodcast.tw/og-image.png",
         width: 1200,
         height: 630,
         alt: "高校化學事預覽圖片",
