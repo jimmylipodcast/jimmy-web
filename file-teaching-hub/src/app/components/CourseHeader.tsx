@@ -11,7 +11,7 @@ export default function CourseHeader({ searchQuery, setSearchQuery, isAdmin, onL
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
       <div>
-        <h1 className="text-xl font-black text-slate-800 tracking-tight">吉米師的化學教室</h1>
+        <h1 className="text-xl font-black text-slate-800 tracking-tight">高校化學事的科普與化學園地</h1>
         <p className="text-xs text-slate-400 font-medium">系統化排版講義與最新公告專區</p>
       </div>
 
