@@ -16,6 +16,22 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "高校化學事",
   description: "分享大大小小關於高中相關趣聞",
+  openGraph: {
+    title: "高校化學事",
+    description: "分享大大小小關於高中相關趣聞",
+    url: "https://www.jimmylipodcast.tw",
+    siteName: "高校化學事",
+    images: [
+      {
+        url: "https://www.jimmylipodcast.tw/og-image.jpg", // 記得放一張圖片在 public 資料夾並命名為 og-image.jpg
+        width: 1200,
+        height: 630,
+        alt: "高校化學事預覽圖片",
+      },
+    ],
+    locale: "zh_TW",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
