@@ -8,7 +8,7 @@ export default function AdminLoginModal({ onClose, onLoginSuccess }: { onClose: 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     // 預設簡易密碼驗證，你可以自由修改
-    if (password === '123') {
+    if (password === 'podcast1234') {
       onLoginSuccess();
     } else {
       alert('密碼輸入錯誤，請再試一次！');
