@@ -15,10 +15,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "高校化學事",
-  description: "分享大大小小關於高中相關趣聞",
+  description: "科普知識·銜接教材·Podcast",
   openGraph: {
     title: "高校化學事",
-    description: "分享大大小小關於高中相關趣聞",
+    description: "科普知識·銜接教材·Podcast",
     url: "https://www.jimmylipodcast.tw",
     siteName: "高校化學事",
     images: [
