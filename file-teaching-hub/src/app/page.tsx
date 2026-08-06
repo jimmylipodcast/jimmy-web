@@ -9,6 +9,7 @@ import CategorySelector from './components/CategorySelector';
 import PodcastWidget from './components/PodcastWidget';
 import AdminControlPanel from './components/AdminControlPanel';
 import AdminLoginModal from './components/AdminLoginModal';
+import { useAuth } from './hooks/useAuth';
 
 import MobileSidebarDrawer from './components/MobileSidebarDrawer';
 
@@ -29,7 +30,7 @@ export default function Home() {
 
   const [selected, setSelected] = useState('全部文章');
   const [search, setSearch] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { isAdmin, authLoading, login, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   // 1. 完善的資料排序與公告邏輯
@@ -77,7 +78,7 @@ export default function Home() {
           searchQuery={search}
           setSearchQuery={setSearch}
           isAdmin={isAdmin}
-          onLockClick={() => (isAdmin ? setIsAdmin(false) : setIsLoginOpen(true))}
+          onLockClick={() => (isAdmin ?  logout()  : setIsLoginOpen(true))}
         />
 
         {isAdmin && (
@@ -86,7 +87,7 @@ export default function Home() {
             onAddCourse={addCourse}
             onAddCategory={addCategory}
             onDeleteCategory={deleteCategory}
-            onLogout={() => setIsAdmin(false)}
+            onLogout={() => logout()}
             onReorderCategories={reorderCategories}
           />
         )}
@@ -155,10 +156,7 @@ export default function Home() {
       {isLoginOpen && (
         <AdminLoginModal
           onClose={() => setIsLoginOpen(false)}
-          onLoginSuccess={() => {
-            setIsAdmin(true);
-            setIsLoginOpen(false);
-          }}
+          onLogin={login}
         />
       )}
     </main>
