@@ -62,19 +62,24 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h3 className="font-black text-slate-800 text-lg md:text-xl leading-snug">{course.title}</h3>
+      <div className="space-y-3">
+        <h3 className="font-black text-slate-800 text-lg md:text-xl leading-snug">{course.title}</h3>
+        <div className="relative">
           <div
             className={
-              'course-content text-slate-600 text-sm md:text-base leading-relaxed overflow-hidden transition-all duration-300 ' +
+              'course-content text-slate-600 text-sm md:text-base leading-relaxed overflow-hidden transition-all duration-300 break-words ' +
               (isExpanded ? 'max-h-[5000px]' : 'max-h-24')
             }
             dangerouslySetInnerHTML={{ __html: linkifyHtml(normalizeContentHtml(course.content)) }}
           />
-          <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs font-bold text-indigo-500 hover:text-indigo-700 transition pt-1 block">
-            {isExpanded ? '收合文章' : '閱讀全文...'}
-          </button>
+          {!isExpanded && (
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+          )}
         </div>
+        <button onClick={() => setIsExpanded(!isExpanded)} className="text-xs font-bold text-indigo-500 hover:text-indigo-700 transition pt-1 block">
+          {isExpanded ? '收合文章' : '閱讀全文...'}
+        </button>
+      </div>
 
         {course.imageUrl && (
           <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
