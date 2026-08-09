@@ -28,3 +28,33 @@ body {
 .course-content, .course-content * {
   font-family: inherit !important;
 }
+
+/* 文章內文：強制所有子元素都不能超出卡片寬度，避免手機版內容溢出框外 */
+.course-content, .course-content * {
+  font-family: inherit !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* 圖片、影片等媒體元素：等比縮放，絕對不超過容器寬度 */
+.course-content img,
+.course-content video,
+.course-content iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 表格：如果老師從 Word/網頁貼上帶有表格，允許表格自己橫向捲動，
+   而不是把整張卡片撐寬 */
+.course-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: normal;
+}
+
+/* 極端情況：超長無空白字串（例如很長的網址或代碼），強制斷行 */
+.course-content {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}

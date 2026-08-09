@@ -47,7 +47,7 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
     <>
       <article
         id={'course-card-' + course.id}
-        className="bg-white p-7 rounded-3xl border border-slate-100/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
+        className="bg-white p-7 rounded-3xl border border-slate-100/80 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group overflow-hidden"
       >
         <div className="flex items-center justify-between text-xs text-slate-400 font-bold tracking-wide mb-3">
           <div className="flex items-center space-x-3">
