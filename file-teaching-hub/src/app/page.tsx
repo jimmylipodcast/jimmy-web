@@ -10,6 +10,7 @@ import PodcastWidget from './components/PodcastWidget';
 import AdminControlPanel from './components/AdminControlPanel';
 import AdminLoginModal from './components/AdminLoginModal';
 import { useAuth } from './hooks/useAuth';
+import MaintenancePage from './components/MaintenancePage';
 
 import MobileSidebarDrawer from './components/MobileSidebarDrawer';
 
@@ -20,7 +21,7 @@ export default function Home() {
     categories,
     loading,
     addCourse,
-    updateCourse, 
+    updateCourse,
     deleteCourse,
     togglePin,
     addCategory,
@@ -33,6 +34,14 @@ export default function Home() {
   const { isAdmin, authLoading, login, logout } = useAuth();
   const [isLoginOpen, setIsLoginOpen] = useState(false);
 
+
+  // 🎯 維修模式開關：讀取環境變數，開啟時一般訪客只會看到維修頁面
+  const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+  const [bypassMaintenance, setBypassMaintenance] = useState(false);
+
+  if (isMaintenanceMode && !bypassMaintenance) {
+    return <MaintenancePage onUnlock={() => setBypassMaintenance(true)} />;
+  }
   // 1. 完善的資料排序與公告邏輯
   const { announcementArticle, sortedList } = useMemo(() => {
     const matched = courses.filter((c) => {
