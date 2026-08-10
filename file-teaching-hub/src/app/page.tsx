@@ -11,6 +11,7 @@ import AdminControlPanel from './components/AdminControlPanel';
 import AdminLoginModal from './components/AdminLoginModal';
 import { useAuth } from './hooks/useAuth';
 import MaintenancePage from './components/MaintenancePage';
+import VisitCounterBadge from './components/VisitCounterBadge';
 
 import MobileSidebarDrawer from './components/MobileSidebarDrawer';
 
@@ -147,6 +148,8 @@ export default function Home() {
               <PodcastWidget />
             </div>
           </div>
+
+          <VisitCounterBadge />
 
           {/* 手機版：懸浮三槓按鈕 + 抽屜選單，桌面寬度時隱藏 */}
           <MobileSidebarDrawer>
