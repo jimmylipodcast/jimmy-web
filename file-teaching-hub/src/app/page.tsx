@@ -149,8 +149,6 @@ export default function Home() {
             </div>
           </div>
 
-          <VisitCounterBadge />
-
           {/* 手機版：懸浮三槓按鈕 + 抽屜選單，桌面寬度時隱藏 */}
           <MobileSidebarDrawer>
             <CategorySelector
@@ -171,6 +169,9 @@ export default function Home() {
           onLogin={login}
         />
       )}
+
+      <VisitCounterBadge />
+
     </main>
   );
 }
