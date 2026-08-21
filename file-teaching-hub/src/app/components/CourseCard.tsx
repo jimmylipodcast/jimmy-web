@@ -1,11 +1,9 @@
 'use client';
 import { useState } from 'react';
 import EditCourseModal from './EditCourseModal';
-import { getEmbedYoutubeUrl, linkifyHtml, normalizeContentHtml } from '../../utils/courseHelpers';
-import { Course } from '../lib/types';
-
+import { getEmbedYoutubeUrl, linkifyHtml, normalizeContentHtml, getFileNameFromUrl } from '../../utils/courseHelpers';
 interface CourseCardProps {
-  course: Course;
+  course: any;
   categories: string[];
   isAdmin: boolean;
   onDelete: (id: string) => void;
@@ -90,29 +88,29 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
           </div>
         )}
 
-        {course.pdfUrls && course.pdfUrls.length > 0 && (
-          <div className="mt-4 space-y-2">
-            {course.pdfUrls.map((url: string, idx: number) => {
-              const label = course.title + ' - 課程講義' + (course.pdfUrls!.length > 1 ? ' ' + (idx + 1) : '');
-              return (
-                <div
-                  key={idx}
-                  className="p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500 rounded-2xl border border-slate-100"
+      {course.pdfUrls && course.pdfUrls.length > 0 && (
+        <div className="mt-4 space-y-2">
+          {course.pdfUrls.map((url: string, idx: number) => {
+            const label = getFileNameFromUrl(url);
+            return (
+              <div
+                key={idx}
+                className="p-4 bg-slate-50/50 flex items-center justify-between gap-4 border-l-4 border-indigo-500 rounded-2xl border border-slate-100"
+              >
+                <p className="text-xs font-bold text-slate-700 truncate">{label}</p>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl whitespace-nowrap"
                 >
-                  <p className="text-xs font-bold text-slate-700 truncate">{label}</p>
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-xl whitespace-nowrap"
-                  >
-                    打開講義
-                  </a>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                  打開講義
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
         {isAdmin && (
           <div className="mt-5 pt-4 border-t border-slate-100 flex justify-end gap-2">

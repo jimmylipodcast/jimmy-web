@@ -65,3 +65,19 @@ export function normalizeContentHtml(content: string): string {
   // 兩種情況都只需要把 \n 轉成 <br/>，不會動到既有的樣式標籤（如 <span style="color:...">）
   return content.replace(/\n/g, '<br/>');
 }
+
+// 從 Supabase Storage 的公開網址中，還原出使用者上傳時的原始檔名
+export function getFileNameFromUrl(url: string): string {
+  try {
+    const decoded = decodeURIComponent(url);
+    const fileNameWithPrefix = decoded.split('/').pop() || '課程講義.pdf';
+    // 檔名格式是「時間戳-隨機碼-原始檔名」，這裡把前面兩段前綴去掉，只留原始檔名
+    const parts = fileNameWithPrefix.split('-');
+    if (parts.length > 2) {
+      return parts.slice(2).join('-');
+    }
+    return fileNameWithPrefix;
+  } catch {
+    return '課程講義.pdf';
+  }
+}

@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
 
-// 產生不會撞名的檔名：時間戳 + 隨機字串，保留原始副檔名
 function makeFileName(originalName: string) {
-  const ext = originalName.split('.').pop();
   const rand = Math.random().toString(36).slice(2, 8);
-  return `${Date.now()}-${rand}.${ext}`;
+  // 保留原始檔名，只在前面加上不會撞名的隨機前綴，避免多個同名檔案互相覆蓋
+  const safeName = originalName.replace(/[^\u4e00-\u9fa5a-zA-Z0-9._-]/g, '_');
+  return `${Date.now()}-${rand}-${safeName}`;
 }
 
 // 共用上傳函式：把檔案傳到指定的 Supabase Storage bucket，回傳公開下載網址
