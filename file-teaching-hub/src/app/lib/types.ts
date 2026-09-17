@@ -6,6 +6,7 @@ export interface Course {
   imageUrl?: string;
   videoUrl?: string;
   pdfUrls?: string[];
+  pdfNames?: string[];
   createdAt: string;
   isPinned: boolean;
 }

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import RichTextEditor from './RichTextEditor';
-import { normalizeContentHtml } from '../../utils/courseHelpers';
+import { normalizeContentHtml, getFileNameFromUrl } from '../../utils/courseHelpers';
 import { Course } from '../lib/types';
 
 interface EditCourseModalProps {
@@ -18,6 +18,7 @@ interface EditCourseModalProps {
       isPinned: boolean;
       removeImage?: boolean;
       keptPdfUrls: string[];
+      keptPdfNames: string[];
     },
     files?: { imageFile?: File; pdfFiles?: File[] }
   ) => Promise<void>;
@@ -26,7 +27,7 @@ interface EditCourseModalProps {
 export default function EditCourseModal({ course, categories, onClose, onUpdate }: EditCourseModalProps) {
   const [title, setTitle] = useState(course.title);
   const [courseName, setCourseName] = useState(course.courseName);
-  const [content, setContent] =  useState(normalizeContentHtml(course.content));
+  const [content, setContent] = useState(normalizeContentHtml(course.content));
   const [videoUrl, setVideoUrl] = useState(course.videoUrl || '');
   const [isPinned, setIsPinned] = useState(course.isPinned);
 
@@ -34,13 +35,19 @@ export default function EditCourseModal({ course, categories, onClose, onUpdate 
   const [removeImage, setRemoveImage] = useState(false);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
 
-  const [keptPdfUrls, setKeptPdfUrls] = useState<string[]>(course.pdfUrls || []);
+  // ✅ 網址與名稱綁成一組物件陣列，一起增刪，不會脫鉤
+  const [keptPdfs, setKeptPdfs] = useState<{ url: string; name: string }[]>(
+    (course.pdfUrls || []).map((url, idx) => ({
+      url,
+      name: course.pdfNames?.[idx] || getFileNameFromUrl(url)
+    }))
+  );
   const [newPdfFiles, setNewPdfFiles] = useState<File[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleRemoveExistingPdf = (url: string) => {
-    setKeptPdfUrls((prev) => prev.filter((u) => u !== url));
+  const handleRemoveExistingPdf = (index: number) => {
+    setKeptPdfs((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,7 +77,8 @@ export default function EditCourseModal({ course, categories, onClose, onUpdate 
           videoUrl: videoUrl.trim() || undefined,
           isPinned,
           removeImage,
-          keptPdfUrls
+          keptPdfUrls: keptPdfs.map((p) => p.url),
+          keptPdfNames: keptPdfs.map((p) => p.name)
         },
         {
           imageFile: newImageFile || undefined,
@@ -178,16 +186,16 @@ export default function EditCourseModal({ course, categories, onClose, onUpdate 
           {/* PDF 清單 */}
           <div className="flex flex-col space-y-2">
             <label className="text-xs font-bold text-indigo-600">PDF 講義檔案</label>
-            {keptPdfUrls.length > 0 && (
+            {keptPdfs.length > 0 && (
               <div className="space-y-1.5">
-                {keptPdfUrls.map((url) => (
-                  <div key={url} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg">
-                    <a href={url} target="_blank" rel="noreferrer" className="text-[11px] text-indigo-600 font-bold truncate flex-1">
-                      {url.split('/').pop()}
+                {keptPdfs.map((pdf, index) => (
+                  <div key={pdf.url} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-lg">
+                    <a href={pdf.url} target="_blank" rel="noreferrer" className="text-[11px] text-indigo-600 font-bold truncate flex-1">
+                      {pdf.name}
                     </a>
                     <button
                       type="button"
-                      onClick={() => handleRemoveExistingPdf(url)}
+                      onClick={() => handleRemoveExistingPdf(index)}
                       className="text-xs font-bold text-red-500 hover:bg-red-50 px-2 py-1 rounded-md ml-2"
                     >
                       移除

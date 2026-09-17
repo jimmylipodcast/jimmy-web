@@ -91,7 +91,7 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
       {course.pdfUrls && course.pdfUrls.length > 0 && (
         <div className="mt-4 space-y-2">
           {course.pdfUrls.map((url: string, idx: number) => {
-            const label = getFileNameFromUrl(url);
+            const label = course.pdfNames?.[idx] || getFileNameFromUrl(url);
             return (
               <div
                 key={idx}

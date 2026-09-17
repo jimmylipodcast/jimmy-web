@@ -62,8 +62,10 @@ export function useBlog() {
         finalImageUrl = await uploadFileToStorage(files.imageFile, 'images');
       }
 
+      let finalPdfNames: string[] = [];
       if (files?.pdfFiles && files.pdfFiles.length > 0) {
         finalPdfUrls = await uploadMultipleFiles(files.pdfFiles, 'lectures');
+        finalPdfNames = files.pdfFiles.map(f => f.name);
       }
 
       const { error } = await supabase.from('courses').insert([{
@@ -88,8 +90,8 @@ export function useBlog() {
   }, [refreshData]);
 
   const updateCourse = useCallback(async (
-    id: string,
-    fields: {
+      id: string,
+      fields: {
       title: string;
       courseName: string;
       content: string;
@@ -97,6 +99,8 @@ export function useBlog() {
       isPinned: boolean;
       removeImage?: boolean;
       keptPdfUrls: string[];
+      keptPdfNames: string[];
+
     },
     files?: { imageFile?: File; pdfFiles?: File[] }
   ) => {
@@ -111,9 +115,12 @@ export function useBlog() {
       }
 
       let finalPdfUrls: string[] = [...fields.keptPdfUrls];
+      let finalPdfNames: string[] = [...fields.keptPdfNames];
       if (files?.pdfFiles && files.pdfFiles.length > 0) {
         const newUrls = await uploadMultipleFiles(files.pdfFiles, 'lectures');
+        const newNames = files.pdfFiles.map(f => f.name);
         finalPdfUrls = [...finalPdfUrls, ...newUrls];
+        finalPdfNames = [...finalPdfNames, ...newNames];
       }
 
       const { error } = await supabase.from('courses').update({
@@ -123,6 +130,7 @@ export function useBlog() {
         image_url: finalImageUrl,
         video_url: fields.videoUrl || null,
         pdf_urls: finalPdfUrls.length > 0 ? finalPdfUrls : null,
+        pdf_names: finalPdfNames.length > 0 ? finalPdfNames : null,
         is_pinned: fields.isPinned
       }).eq('id', id);
 
