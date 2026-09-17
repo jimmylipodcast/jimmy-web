@@ -30,6 +30,7 @@ export function useBlog() {
         imageUrl: item.image_url || undefined,
         videoUrl: item.video_url || undefined,
         pdfUrls: item.pdf_urls || undefined,
+        pdfNames: item.pdf_names || undefined,
         createdAt: item.created_at,
         isPinned: item.is_pinned,
       }));
