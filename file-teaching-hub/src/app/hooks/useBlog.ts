@@ -76,6 +76,7 @@ export function useBlog() {
         image_url: finalImageUrl,
         video_url: newCourse.videoUrl || null,
         pdf_urls: finalPdfUrls.length > 0 ? finalPdfUrls : null,
+        pdf_names: finalPdfNames.length > 0 ? finalPdfNames : null,
         created_at: newCourse.createdAt,
         is_pinned: newCourse.isPinned
       }]);
