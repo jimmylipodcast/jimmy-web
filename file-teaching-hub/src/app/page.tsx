@@ -12,6 +12,7 @@ import AdminLoginModal from './components/AdminLoginModal';
 import { useAuth } from './hooks/useAuth';
 import MaintenancePage from './components/MaintenancePage';
 import VisitCounterBadge from './components/VisitCounterBadge';
+import AnnouncementCarousel from './components/AnnouncementCarousel';
 
 import MobileSidebarDrawer from './components/MobileSidebarDrawer';
 
@@ -109,20 +110,11 @@ export default function Home() {
         ) : (
           <>
             {announcementArticle && (
-              <div className="bg-[#121624] text-white rounded-3xl p-6 flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="inline-block w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-sky-400">最新重要公告</span>
-                  </div>
-                  <h2 className="text-base font-black tracking-tight">{announcementArticle.title}</h2>
-                </div>
-                <button
-                  onClick={() => handleAnnouncementClick(announcementArticle.id)}
-                  className="bg-white text-slate-900 px-5 py-2 rounded-xl text-xs font-bold hover:bg-slate-100 transition active:scale-[0.97] cursor-pointer shadow-sm shrink-0"
-                >
-                  閱讀此文 →
-                </button>
+              <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                <AnnouncementCarousel
+                  articleTitle={announcementArticle.title}
+                  onArticleClick={() => handleAnnouncementClick(announcementArticle.id)}
+                />
               </div>
             )}
 
