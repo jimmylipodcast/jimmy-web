@@ -64,7 +64,7 @@ export default function AnnouncementCarousel({ articleTitle, onArticleClick }: A
         {/* 第二張：Podcast 最新一集，只有成功取得資料時才顯示 */}
         {episode && (
           <div className="w-full flex-shrink-0 snap-start">
-            
+            <a
               href={episode.link}
               target="_blank"
               rel="noreferrer"
