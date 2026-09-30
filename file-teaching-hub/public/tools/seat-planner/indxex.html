@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>高校座位表達人</title>
+  <style>
+    :root{--ink:#19243a;--muted:#66758c;--line:#d7e0ec;--blue:#286ded;--paper:#fff;--bg:#f4f7fb;--warn:#a83838}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}button,input,select{font:inherit}button{border:0;border-radius:8px;padding:8px 11px;background:#e9eff8;color:var(--ink);font-weight:700;cursor:pointer}button:hover{filter:brightness(.97)}button.primary{background:var(--blue);color:#fff}button.success{background:#278655;color:#fff}button.danger{background:#fff0f0;color:#a43838}button.mini{padding:3px 7px;font-size:12px}
+    header{max-width:1480px;margin:auto;padding:20px 22px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.brand-heading{display:flex;align-items:center;gap:10px;min-width:0}.brand-logo{width:52px;height:52px;object-fit:cover;object-position:center;mix-blend-mode:multiply;border-radius:9px;flex:0 0 auto}.title-line{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}.brand-credit{font-size:11px;color:#74839a;font-weight:700;letter-spacing:.02em;white-space:nowrap}.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}h1{font-size:24px;margin:0}.subtitle,.hint,.status{font-size:12px;color:var(--muted);line-height:1.5}.subtitle{margin-top:5px}.wrap{max-width:1480px;margin:auto;padding:0 22px 28px}.top{display:grid;grid-template-columns:minmax(0,3fr) minmax(310px,1fr);gap:16px;min-height:670px}.card{background:var(--paper);border:1px solid var(--line);border-radius:15px;box-shadow:0 6px 20px rgba(27,48,82,.05)}
+    .room{padding:15px;display:flex;flex-direction:column;min-width:0}.room-head,.candidate-head{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.room h2,.panel h2,.candidates h2{font-size:17px;margin:0}.classroom{flex:1;display:flex;gap:13px;padding:16px;background:linear-gradient(140deg,#fafcff,#edf4ff);border:1px dashed #b9cdea;border-radius:12px;min-height:540px}.classroom.bottom{flex-direction:column}.classroom.topside{flex-direction:column-reverse}.desk{height:54px;flex:0 0 54px;border:2px solid #bd7a19;border-radius:9px;background:#ffe5b9;color:#70460f;font-weight:900;letter-spacing:2px;display:flex;align-items:center;justify-content:center}.seat-grid{display:grid;align-content:center;justify-content:center;gap:7px;flex:1}
+    .seat{position:relative;width:86px;min-height:56px;border:1px solid #b7c6d9;border-radius:8px;background:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px 4px;user-select:none;box-shadow:0 1px 3px rgba(30,60,90,.08)}.seat:hover{border-color:#447ee4}.seat.selected{outline:3px solid #79a7ff;background:#eff6ff}.seat.closed{background:repeating-linear-gradient(135deg,#eef1f4 0,#eef1f4 7px,#dfe5eb 7px,#dfe5eb 14px);color:#687587}.seat.over{outline:3px solid #f0aa39}.coord{position:absolute;left:5px;top:3px;font-size:10px;color:#7b899c}.seat-number{font-size:11px;color:#4f72a8;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.seat-name{font-size:14px;font-weight:800;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.empty{font-size:12px;color:#a7b2c2}.closed-word{font-size:12px;font-weight:800}
+    .panel{padding:14px;max-height:780px;overflow:auto}.section{padding:0 0 13px;margin:0 0 13px;border-bottom:1px solid var(--line)}.section:last-child{border:0;margin:0}.section-title{font-size:14px;font-weight:900;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;gap:6px}.row{display:flex;gap:7px;align-items:center;margin:7px 0}.row input,.row select{min-width:0;width:100%;border:1px solid #cbd6e4;border-radius:8px;padding:7px;background:#fff}.row .num{width:66px;text-align:center}.size-field{position:relative;display:block;width:66px;flex:0 0 66px}.row .size-field .num{width:100%;padding:6px 5px 16px;text-align:center}.size-label{position:absolute;right:5px;bottom:3px;font-size:9px;line-height:1;color:#7b899c;pointer-events:none}.size-times{flex:0 0 auto}.file{padding:9px;border:1px dashed #91afd8;border-radius:8px;background:#f7faff}.file input{max-width:100%;font-size:12px}.template{padding:0;background:transparent;color:#1f60c9;text-decoration:underline;font-size:12px}.notice{display:none;margin-top:7px;padding:8px;border-radius:8px;font-size:12px;line-height:1.45}.notice.ok{display:block;color:#226f3d;background:#e9f8ee}.notice.err{display:block;color:#a43131;background:#fff0f0}.roster{max-height:124px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:4px}.student{padding:6px;border-radius:6px;font-size:12px;cursor:grab}.student:hover{background:#edf4ff}.student.used{color:#8b96a6}.draft{padding:8px;border:1px solid #d4e2fc;border-radius:8px;background:#f4f8ff;font-size:12px;line-height:1.45}.rules,.groups{display:grid;gap:6px;margin-top:7px}.rule{display:flex;justify-content:space-between;gap:6px;padding:7px;border-radius:8px;background:#f6f8fc;font-size:12px}.rule-detail{color:var(--muted);margin-top:2px}.remove{background:#ffeef0;color:#a53b4a;padding:2px 7px;min-width:0}.group-head{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:800}.group-drop{min-height:45px;padding:5px;border:1px dashed #9bb4d8;border-radius:8px;background:#fbfdff;display:flex;gap:5px;align-content:flex-start;flex-wrap:wrap}.group-drop.over{background:#fff7e6;border-color:#d99b2f}.chip{font-size:11px;background:#e6efff;color:#24529c;padding:3px 6px;border-radius:12px;white-space:nowrap}.chip button{padding:0 0 0 4px;background:transparent;color:#24529c}.actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actions .wide{grid-column:1/-1}
+    .candidates{margin-top:16px;padding:14px}.candidate-head{margin-bottom:0}.candidate-actions{display:flex;align-items:center;gap:7px}.candidate-grid{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr));gap:10px;margin-top:12px;min-height:130px}.candidate{border:1px solid var(--line);border-radius:9px;padding:7px;cursor:pointer}.candidate:hover{border-color:#7ba3eb}.candidate-top{display:flex;align-items:center;justify-content:space-between;gap:3px;font-size:11px;color:#56657c}.candidate-mini{display:grid;gap:2px;margin:5px 0}.mini-seat{height:20px;border:1px solid #bfcbdb;border-radius:3px;font-size:8px;line-height:18px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;text-align:center}.mini-seat.closed{background:#e5e9ed}.mini-desk{height:8px;border:1px solid #c58a2d;background:#ffe3b5;border-radius:2px;margin:4px 0}.empty-candidates{grid-column:1/-1;border:1px dashed #cbd7e5;border-radius:8px;color:#8490a3;font-size:13px;display:flex;align-items:center;justify-content:center;min-height:120px}.context{display:none;position:fixed;z-index:20;padding:5px;background:#fff;border:1px solid #cbd5e3;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.16)}.context button{background:#fff;font-size:13px}.restore-label{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:8px;padding:8px 11px;background:#e9eff8;color:var(--ink);font-weight:700;cursor:pointer;white-space:nowrap}.restore-label:hover{filter:brightness(.97)}.restore-label input{display:none}.privacy-modal{position:fixed;z-index:30;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,30,52,.46)}.privacy-modal.show{display:flex}.privacy-card{max-width:500px;padding:22px;background:#fff;border-radius:15px;box-shadow:0 18px 50px rgba(0,0,0,.23)}.privacy-card h2{font-size:20px;margin:0 0 10px}.privacy-card p,.privacy-card li{font-size:14px;line-height:1.65}.privacy-card ul{padding-left:21px}.privacy-card .row{justify-content:flex-end;margin-top:16px}
+    @media(max-width:960px){.top{grid-template-columns:1fr}.panel{max-height:none}.candidate-grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:560px){header,.wrap{padding-left:12px;padding-right:12px}.header-actions{width:100%;justify-content:flex-start}.candidate-grid{grid-template-columns:repeat(2,1fr)}.seat{width:65px;min-height:52px}.seat-name{font-size:12px}.classroom{padding:9px;gap:8px}.seat-grid{gap:5px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand-heading"><img class="brand-logo" src="brand-logo.png" alt="高校化學事品牌圖標"><div><div class="title-line"><h1>高校座位表達人</h1><span class="brand-credit">高校化學事 吉米師 設計製作</span></div><div class="subtitle">分享版 v1.4.0｜名單與座位設定只儲存在目前瀏覽器；不會上傳到外部。</div></div></div>
+    <div class="header-actions"><button id="orderByNumber" class="primary" title="依座號順序填入 1-1、1-2、1-3…">按照座號排列</button><button id="clearSeats" class="success" title="只清空目前座位安排，保留名單與設定">清空目前座位表</button><button id="clearAll" class="danger">清除本機資料</button></div>
+  </header>
+  <div class="wrap">
+    <div class="top">
+      <section class="room card">
+        <div class="room-head"><div><h2>教室座位區</h2><div id="roomStats" class="status">尚未匯入名單</div></div><div id="orientation" class="status">講台在下方｜1-1 在左下</div></div>
+        <div id="classroom" class="classroom bottom"><div id="seatGrid" class="seat-grid"></div><div class="desk">講台</div></div>
+      </section>
+      <aside class="panel card">
+        <div class="section">
+          <div class="section-title">座位安排初始設定</div>
+          <div class="row"><label class="size-field"><input id="rows" class="num" type="number" min="1" max="12" value="7" aria-label="橫列數量"><span class="size-label">橫列</span></label><span class="size-times">×</span><label class="size-field"><input id="cols" class="num" type="number" min="1" max="12" value="7" aria-label="直行數量"><span class="size-label">直行</span></label><button id="sizeApply">套用</button></div>
+          <div class="hint">座位編碼採「直排-座位」：老師面向學生時，左手邊為第 1 直排；每一直排自講台起算。關閉座位會略過，不占編號。</div>
+        </div>
+        <div class="section"><div class="section-title">班級名單 <span id="studentCount">0 人</span></div><div id="roster" class="roster"><div class="hint">匯入後可拖曳學生到空座位。</div></div></div>
+        <div class="section">
+          <div class="section-title">特定同學安排 <span id="ruleCount">0 / 3</span></div>
+          <select id="ruleStudent"><option value="">請先選擇學生</option></select>
+          <div id="draft" class="draft">選擇學生後，在左側點選可出現的座位。選一格即固定，多格會在範圍內隨機。</div>
+          <div class="row"><button id="saveRule" class="primary">儲存此安排</button><button id="cancelRule">取消選取</button></div>
+          <div id="rules" class="rules"></div>
+        </div>
+        <div class="section"><div class="section-title">拆散群體 <button id="addGroup" class="mini">＋ 群組</button></div><div class="hint">將名單或座位上的學生拖入同一群組，隨機時會盡量避免相鄰。</div><div id="groups" class="groups"></div></div>
+        <div class="section"><div class="section-title">操作</div><div class="actions"><button id="random" class="primary wide">隨機安排</button><button id="capture">加入候選</button><button id="makeFive">產生 5 張</button><button id="toggleDesk" class="wide">講台在下方（點擊切換）</button></div></div>
+        <div class="section">
+          <div class="section-title">匯入班級名單</div>
+          <div class="file"><input id="file" type="file" accept=".csv,.tsv,.txt,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
+          <div class="row"><button id="downloadTemplate" class="template">下載預設 CSV 範本（座號、姓名）</button></div>
+          <div id="notice" class="notice"></div>
+          <div class="hint">可完全離線讀取 UTF-8／Big5 CSV 及標準 .xlsx 第一張工作表；舊式 .xls 請先另存為 .xlsx 或 UTF-8 CSV。</div>
+        </div>
+        <div class="section">
+          <div class="section-title">設定備份與還原</div>
+          <div class="row"><button id="backupData">下載備份 JSON</button><label class="restore-label">還原備份<input id="restoreFile" type="file" accept=".json,application/json"></label></div>
+          <div class="hint">備份檔含班級姓名、座號與座位設定；請比照名單妥善保存，不要公開分享。</div>
+        </div>
+      </aside>
+    </div>
+    <section class="candidates card">
+      <div class="candidate-head"><h2>列印候選區 <span id="candidateCount" class="status">0 / 10</span></h2><div class="candidate-actions"><span class="status">點選縮圖可載入</span><button id="savePng">另存 PNG（勾選項目）</button><button id="print">列印勾選項目</button></div></div>
+      <div id="candidateGrid" class="candidate-grid"></div>
+    </section>
+  </div>
+  <div id="context" class="context"><button id="toggleClosed">關閉此座位</button></div>
+  <div id="privacyModal" class="privacy-modal" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
+    <div class="privacy-card">
+      <h2 id="privacyTitle">分享版使用提醒</h2>
+      <p>本工具不會上傳班級名單；資料只暫存於目前電腦的瀏覽器。</p>
+      <ul>
+        <li>請只用於必要的班級座位安排，不要公開含姓名、座號的 CSV、PNG 或截圖。</li>
+        <li>在共用電腦使用後，請按右上角「清除本機資料」。</li>
+        <li>若需換電腦或長期保存，請下載設定備份 JSON 並妥善保管。</li>
+      </ul>
+      <div class="row"><button id="acceptPrivacy" class="primary">我了解，開始使用</button></div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -16,6 +16,8 @@ import AnnouncementCarousel from './components/AnnouncementCarousel';
 
 import MobileSidebarDrawer from './components/MobileSidebarDrawer';
 
+import ToolsWidget from './components/ToolsWidget';
+
 export default function Home() {
   const {
     courses,
@@ -138,6 +140,7 @@ export default function Home() {
                 onSelect={setSelected}
               />
               <PodcastWidget />
+              <ToolsWidget />
             </div>
           </div>
 
@@ -149,6 +152,7 @@ export default function Home() {
               onSelect={setSelected}
             />
             <PodcastWidget />
+            <ToolsWidget />
           </MobileSidebarDrawer>
           </>
         )}
