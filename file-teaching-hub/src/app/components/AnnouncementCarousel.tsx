@@ -92,6 +92,9 @@ export default function AnnouncementCarousel({ articleTitle, onArticleClick }: A
             </a>
           </div>
         )}
+
+        {/* 第三張：最新網站 */}
+        
       </div>
 
       {/* 指示點：只有兩張以上時才顯示 */}

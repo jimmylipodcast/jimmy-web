@@ -33,6 +33,7 @@ export function useBlog() {
         pdfNames: item.pdf_names || undefined,
         createdAt: item.created_at,
         isPinned: item.is_pinned,
+        imagePosition: item.image_position || 'bottom',
       }));
 
       const { data: catsData, error: catError } = await supabase
@@ -79,6 +80,7 @@ export function useBlog() {
         pdf_urls: finalPdfUrls.length > 0 ? finalPdfUrls : null,
         pdf_names: finalPdfNames.length > 0 ? finalPdfNames : null,
         created_at: newCourse.createdAt,
+        image_position: newCourse.imagePosition || 'bottom',
         is_pinned: newCourse.isPinned
       }]);
 
@@ -102,7 +104,7 @@ export function useBlog() {
       removeImage?: boolean;
       keptPdfUrls: string[];
       keptPdfNames: string[];
-
+      imagePosition: 'top' | 'bottom';
     },
     files?: { imageFile?: File; pdfFiles?: File[] }
   ) => {
@@ -133,6 +135,7 @@ export function useBlog() {
         video_url: fields.videoUrl || null,
         pdf_urls: finalPdfUrls.length > 0 ? finalPdfUrls : null,
         pdf_names: finalPdfNames.length > 0 ? finalPdfNames : null,
+        image_position: fields.imagePosition,
         is_pinned: fields.isPinned
       }).eq('id', id);
 

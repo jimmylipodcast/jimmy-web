@@ -4,6 +4,7 @@ export interface Course {
   courseName: string;
   content: string;
   imageUrl?: string;
+  imagePosition?: 'top' | 'bottom';
   videoUrl?: string;
   pdfUrls?: string[];
   pdfNames?: string[];

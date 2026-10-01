@@ -19,6 +19,7 @@ interface EditCourseModalProps {
       removeImage?: boolean;
       keptPdfUrls: string[];
       keptPdfNames: string[];
+      imagePosition: 'top' | 'bottom';
     },
     files?: { imageFile?: File; pdfFiles?: File[] }
   ) => Promise<void>;
@@ -30,6 +31,7 @@ export default function EditCourseModal({ course, categories, onClose, onUpdate 
   const [content, setContent] = useState(normalizeContentHtml(course.content));
   const [videoUrl, setVideoUrl] = useState(course.videoUrl || '');
   const [isPinned, setIsPinned] = useState(course.isPinned);
+  const [imagePosition, setImagePosition] = useState<'top' | 'bottom'>(course.imagePosition || 'bottom');
 
   const [currentImageUrl, setCurrentImageUrl] = useState(course.imageUrl || '');
   const [removeImage, setRemoveImage] = useState(false);
@@ -78,7 +80,8 @@ export default function EditCourseModal({ course, categories, onClose, onUpdate 
           isPinned,
           removeImage,
           keptPdfUrls: keptPdfs.map((p) => p.url),
-          keptPdfNames: keptPdfs.map((p) => p.name)
+          keptPdfNames: keptPdfs.map((p) => p.name),
+          imagePosition
         },
         {
           imageFile: newImageFile || undefined,
@@ -169,6 +172,27 @@ export default function EditCourseModal({ course, categories, onClose, onUpdate 
               className="border border-dashed border-slate-300 p-2 rounded-xl text-xs bg-slate-50/40 text-slate-600 focus:outline-indigo-500 cursor-pointer"
             />
             <p className="text-[11px] text-slate-400">選取新檔案即可取代原本的圖片，不選則維持原狀</p>
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-[11px] font-bold text-slate-400">圖片位置：</span>
+              <button
+                type="button"
+                onClick={() => setImagePosition('bottom')}
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition ${
+                  imagePosition === 'bottom' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                圖片在下
+              </button>
+              <button
+                type="button"
+                onClick={() => setImagePosition('top')}
+                className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition ${
+                  imagePosition === 'top' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                圖片在上
+              </button>
+            </div>
           </div>
 
           {/* YouTube 網址 */}

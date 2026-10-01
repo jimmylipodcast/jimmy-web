@@ -20,6 +20,7 @@ export default function AdminControlPanel({
   onReorderCategories,
   onLogout
 }: AdminPanelProps) {
+  const [imagePosition, setImagePosition] = useState<'top' | 'bottom'>('bottom');
   const [title, setTitle] = useState('');
   const [courseName, setCourseName] = useState(categories[0] || '化學高一');
   const [content, setContent] = useState('');
@@ -42,7 +43,8 @@ export default function AdminControlPanel({
       content: content.trim() || '無詳細內容描述。',
       videoUrl: videoUrl.trim() || undefined,
       createdAt: new Date().toISOString(),
-      isPinned
+      isPinned,
+      imagePosition
     }, {
       imageFile: imageFile || undefined,
       pdfFiles: pdfFiles.length > 0 ? pdfFiles : undefined
@@ -52,6 +54,7 @@ export default function AdminControlPanel({
     setContent('');
     setVideoUrl('');
     setIsPinned(false);
+    setImagePosition('bottom');
     setImageFile(null);
     setPdfFiles([]);
     setFileInputKey(Date.now());
@@ -121,6 +124,27 @@ export default function AdminControlPanel({
             }}
             className="border border-dashed border-slate-300 p-2 rounded-xl text-xs bg-slate-50/40 text-slate-600 focus:outline-indigo-500 cursor-pointer"
           />
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-[11px] font-bold text-slate-400">圖片位置：</span>
+            <button
+              type="button"
+              onClick={() => setImagePosition('bottom')}
+              className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition ${
+                imagePosition === 'bottom' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              圖片在下（預設）
+            </button>
+            <button
+              type="button"
+              onClick={() => setImagePosition('top')}
+              className={`text-[11px] font-bold px-3 py-1.5 rounded-lg transition ${
+                imagePosition === 'top' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'
+              }`}
+            >
+              圖片在上
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col space-y-1">

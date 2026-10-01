@@ -60,6 +60,12 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
           </div>
         </div>
 
+        {course.imageUrl && course.imagePosition === 'top' && (
+          <div className="mb-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+            <img src={course.imageUrl} alt={course.title} className="w-full h-auto object-cover" />
+          </div>
+        )}
+
         <div className="space-y-3">
           <h3 className="font-black text-slate-800 text-lg md:text-xl leading-snug">{course.title}</h3>
           <div
@@ -74,7 +80,7 @@ export default function CourseCard({ course, categories, isAdmin, onDelete, onTo
           </button>
         </div>
 
-        {course.imageUrl && (
+        {course.imageUrl && course.imagePosition !== 'top' && (
           <div className="mt-4 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
             <img src={course.imageUrl} alt={course.title} className="w-full h-auto object-cover" />
           </div>
