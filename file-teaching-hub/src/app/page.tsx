@@ -133,7 +133,7 @@ export default function Home() {
             </div>
 
             {/* 桌面版：維持原本固定在右側的側邊欄，手機寬度時隱藏 */}
-            <div className="hidden lg:block space-y-6 sticky top-6">
+            <div className="hidden lg:block space-y-6 sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto pr-1">
               <CategorySelector
                 uniqueCourseNames={uniqueCourseNames}
                 selected={selected}
