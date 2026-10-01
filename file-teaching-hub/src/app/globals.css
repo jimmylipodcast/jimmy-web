@@ -58,3 +58,27 @@ body {
   overflow-wrap: break-word;
   word-break: break-word;
 }
+
+/* 側邊欄捲軸樣式：細窄、淡化顏色，不要太搶眼 */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #cbd5e1;
+}
+
+/* Firefox 專用的細窄捲軸設定 */
+.sidebar-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
