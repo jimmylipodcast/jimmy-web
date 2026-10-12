@@ -14,8 +14,18 @@ export default function ToolsWidget() {
             className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/40 transition group"
           >
             <a href={tool.path} target="_blank" rel="noreferrer" className="block">
-              <p className="text-sm font-bold text-slate-700 group-hover:text-indigo-600">{tool.name}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-bold text-slate-700 group-hover:text-indigo-600">{tool.name}</p>
+                {tool.version && (
+                  <span className="shrink-0 bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-full text-[10px] font-black tracking-wide">
+                    {tool.version}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-400 mt-1 leading-relaxed">{tool.description}</p>
+              {tool.updatedAt && (
+                <p className="text-[11px] text-slate-400/80 mt-1.5">更新日期：{tool.updatedAt}</p>
+              )}
             </a>
             {tool.downloadPath && (
               <a

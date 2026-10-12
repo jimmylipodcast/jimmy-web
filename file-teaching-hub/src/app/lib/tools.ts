@@ -5,6 +5,8 @@ export interface DownloadTool {
   path: string;
   downloadPath?: string;
   downloadFileName?: string;
+  version?: string;
+  updatedAt?: string;
 }
 
 export const downloadTools: DownloadTool[] = [
@@ -15,5 +17,7 @@ export const downloadTools: DownloadTool[] = [
     path: '/tools/seat-planner/',
     downloadPath: '/downloads/seat-planner.zip',
     downloadFileName: '高校座位表達人_離線版.zip',
+    version: 'v1.5.2',
+    updatedAt: '10/12',
   },
 ];

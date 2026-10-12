@@ -4,7 +4,7 @@
 var STORE="classroom_seating_local_v3";
 var PRIVACY_NOTICE_STORE="classroom_seating_share_notice_v1";
 var ORIENTATION_LAYOUT_VERSION=2;
-function initialState(){return {rows:7,cols:7,desk:"bottom",orientationLayoutVersion:ORIENTATION_LAYOUT_VERSION,students:[],seats:{},closed:[],rules:[],draft:{studentId:"",cells:[]},groups:[],candidates:[]};}
+function initialState(){return {rows:7,cols:7,desk:"bottom",orientationLayoutVersion:ORIENTATION_LAYOUT_VERSION,genderMode:"none",students:[],seats:{},closed:[],rules:[],draft:{studentId:"",cells:[]},groups:[],candidates:[]};}
 var state=initialState();
 var contextKey="";
 function byId(id){return document.getElementById(id);}
@@ -13,6 +13,7 @@ function newId(prefix){return prefix+"_"+Date.now().toString(36)+"_"+Math.random
 function copy(value){return JSON.parse(JSON.stringify(value));}
 function escapeHtml(value){return String(value==null?"":value).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
 function student(id){return state.students.find(function(s){return s.id===id;})||null;}
+function studentBackground(s){return s&&s.gender==="male"?"#e5f2ff":s&&s.gender==="female"?"#ffe9ec":"#ffffff";}
 function label(id){var s=student(id);return s?s.no+" "+s.name:"已移除學生";}
 function allCells(){var out=[];for(var r=1;r<=state.rows;r++){for(var c=1;c<=state.cols;c++){out.push(cellKey(r,c));}}return out;}
 function isClosed(k){return state.closed.indexOf(k)!==-1;}
@@ -55,6 +56,7 @@ function restore(){
       if(!state.groups)state.groups=[];
       if(!state.candidates)state.candidates=[];
       if(!state.closed)state.closed=[];
+      if(["none","checkerboard","separateRows"].indexOf(state.genderMode)===-1)state.genderMode="none";
     }
   }catch(e){}
 }
@@ -102,6 +104,7 @@ function renderMeta(){
   byId("toggleDesk").textContent=bottom?"講台在下方（點擊切換）":"講台在上方（點擊切換）";
   byId("ruleCount").textContent=state.rules.length+" / 3";
   byId("candidateCount").textContent=state.candidates.length+" / 10";
+  document.querySelectorAll("input[name='genderMode']").forEach(function(input){input.checked=input.value===state.genderMode;});
   var active=student(state.draft.studentId);
   var draft=byId("draft");
   if(active){
@@ -124,6 +127,7 @@ function renderGrid(){
       var s=student(id);
       var node=document.createElement("div");
       node.className="seat"+(closed?" closed":"")+(state.draft.cells.indexOf(k)!==-1?" selected":"");
+      if(!closed)node.style.backgroundColor=studentBackground(s);
       node.dataset.key=k;
       node.dataset.student=id||"";
       if(closed){
@@ -224,7 +228,7 @@ function renderRoster(){
     var item=document.createElement("div");
     item.className="student"+(studentSeat(s.id)?" used":"");
     item.draggable=true;
-    item.textContent=s.no+"｜"+s.name+(studentSeat(s.id)?"（已安排）":"");
+    item.textContent=s.no+"｜"+s.name+(s.gender?"（"+(s.gender==="male"?"男":"女")+"）":"")+(studentSeat(s.id)?"（已安排）":"");
     item.addEventListener("dragstart",function(e){
       e.dataTransfer.effectAllowed="copy";
       e.dataTransfer.setData("text/plain",JSON.stringify({id:s.id,from:"",kind:"roster"}));
@@ -311,9 +315,65 @@ function shuffle(items){
   }
   return out;
 }
+function normalizeGender(value){
+  var text=String(value==null?"":value).trim().toLowerCase();
+  if(["男","男性","m","male","boy"].indexOf(text)!==-1)return "male";
+  if(["女","女性","f","female","girl"].indexOf(text)!==-1)return "female";
+  return "";
+}
+function requireGenderData(){
+  if(state.genderMode==="none")return;
+  var missing=state.students.filter(function(s){return s.gender!=="male"&&s.gender!=="female";});
+  if(missing.length)throw new Error("啟用男女生安排前，請匯入含「性別」欄的名冊，並為每位學生填入「男」或「女」。目前有 "+missing.length+" 位學生缺少可用性別資料。");
+}
+function assignByGenderPreference(result,free,students,desiredGender){
+  var pools={male:shuffle(students.filter(function(s){return s.gender==="male";})),female:shuffle(students.filter(function(s){return s.gender==="female";}))};
+  ["male","female"].forEach(function(gender){
+    var preferred=shuffle(free.filter(function(k){return desiredGender(k)===gender&&!result[k];}));
+    while(pools[gender].length&&preferred.length)result[preferred.pop()]=pools[gender].pop().id;
+  });
+  var remainingStudents=shuffle(pools.male.concat(pools.female));
+  var remainingSeats=shuffle(free.filter(function(k){return !result[k];}));
+  remainingStudents.forEach(function(s,index){result[remainingSeats[index]]=s.id;});
+}
+function checkerboardGender(result,free,students){
+  var bestPhase=0,bestScore=Infinity;
+  for(var phase=0;phase<2;phase++){
+    var desired=function(k){var p=k.split("-").map(Number);return ((p[0]+p[1]+phase)%2===0)?"male":"female";};
+    var maleSeats=free.filter(function(k){return desired(k)==="male";}).length;
+    var maleStudents=students.filter(function(s){return s.gender==="male";}).length;
+    var score=Math.abs(maleSeats-maleStudents);
+    Object.keys(result).forEach(function(k){var s=student(result[k]);if(s&&desired(k)!==s.gender)score+=8;});
+    if(score<bestScore||(score===bestScore&&Math.random()<0.5)){bestPhase=phase;bestScore=score;}
+  }
+  assignByGenderPreference(result,free,students,function(k){var p=k.split("-").map(Number);return ((p[0]+p[1]+bestPhase)%2===0)?"male":"female";});
+}
+function separateRowsGender(result,free,students){
+  var rowData=[];
+  for(var column=1;column<=state.cols;column++)rowData.push({column:column,cells:free.filter(function(k){return Number(k.split("-")[1])===column;})});
+  var maleStudents=students.filter(function(s){return s.gender==="male";}).length;
+  var alternatingMasks=[0,0];
+  rowData.forEach(function(data,index){alternatingMasks[index%2]|=(1<<index);});
+  var bestMasks=[],bestScore=Infinity;
+  for(var phase=0;phase<alternatingMasks.length;phase++){
+    var mask=alternatingMasks[phase];
+    var maleCapacity=0,score=0;
+    rowData.forEach(function(data,index){if(mask&(1<<index))maleCapacity+=data.cells.length;});
+    score=Math.abs(maleCapacity-maleStudents);
+    Object.keys(result).forEach(function(k){
+      var locked=student(result[k]),column=Number(k.split("-")[1]),maleRow=!!(mask&(1<<(column-1)));
+      if(locked&&((maleRow?"male":"female")!==locked.gender))score+=8;
+    });
+    if(score<bestScore){bestScore=score;bestMasks=[mask];}
+    else if(score===bestScore)bestMasks.push(mask);
+  }
+  var chosen=bestMasks[Math.floor(Math.random()*bestMasks.length)];
+  assignByGenderPreference(result,free,students,function(k){var column=Number(k.split("-")[1]);return chosen&(1<<(column-1))?"male":"female";});
+}
 function makeRandomMap(){
   var open=availableCells();
   if(state.students.length>open.length)throw new Error("可用座位只有 "+open.length+" 個，但名單有 "+state.students.length+" 人。請增加座位或重新開啟部分座位。");
+  requireGenderData();
   var result={},occupied={},lockedIds=[];
   var rules=shuffle(state.rules);
   for(var i=0;i<rules.length;i++){
@@ -326,7 +386,9 @@ function makeRandomMap(){
   }
   var rest=shuffle(state.students.filter(function(s){return lockedIds.indexOf(s.id)===-1;}));
   var free=shuffle(open.filter(function(k){return !occupied[k];}));
-  rest.forEach(function(s,i){result[free[i]]=s.id;});
+  if(state.genderMode==="checkerboard")checkerboardGender(result,free,rest);
+  else if(state.genderMode==="separateRows")separateRowsGender(result,free,rest);
+  else rest.forEach(function(s,i){result[free[i]]=s.id;});
   return result;
 }
 function spreadScore(seats){
@@ -392,7 +454,7 @@ function miniHtml(c){
     for(var vc=1;vc<=c.cols;vc++){
       var p=mapVisual(vr,vc,c.rows,c.cols,c.desk);
       var k=cellKey(p.r,p.c),id=c.seats[k],s=student(id);
-      html+="<div class='mini-seat"+(closedCells.indexOf(k)!==-1?" closed":"")+"'>"+(s?escapeHtml(s.no+" "+s.name):(closedCells.indexOf(k)!==-1?"關閉":""))+"</div>";
+      html+="<div class='mini-seat"+(closedCells.indexOf(k)!==-1?" closed":"")+"' style='background-color:"+(closedCells.indexOf(k)!==-1?"#e5e9ed":studentBackground(s))+";print-color-adjust:exact;-webkit-print-color-adjust:exact'>"+(s?escapeHtml(s.no+" "+s.name):(closedCells.indexOf(k)!==-1?"關閉":""))+"</div>";
     }
   }
   return html;
@@ -506,7 +568,7 @@ function drawPngCandidate(candidate,number){
       var y=gridY+(vr-1)*(cellHeight+gap);
       var closed=closedCells.indexOf(k)!==-1;
       var id=candidate.seats[k],s=student(id);
-      roundedCanvasRect(ctx,x,y,cellWidth,cellHeight,9,closed?"#e8edf2":"#ffffff",closed?"#b7c3d1":"#9eafc5");
+      roundedCanvasRect(ctx,x,y,cellWidth,cellHeight,9,closed?"#e8edf2":studentBackground(s),closed?"#b7c3d1":"#9eafc5");
       if(closed){
         ctx.save();
         roundedCanvasPath(ctx,x+1,y+1,cellWidth-2,cellHeight-2,8);
@@ -721,9 +783,10 @@ function applyImport(rows,fileName){
   if(!rows.length)throw new Error("檔案沒有可讀取的資料。");
   var noNames=["座號","座号","no","number","seatno","studentno","學號","学号"];
   var nameNames=["姓名","名字","name","studentname","學生姓名","学生姓名"];
+  var genderNames=["性別","性别","gender","sex"];
   var headers=rows[0].map(normal);
-  var noCol=-1,nameCol=-1;
-  headers.forEach(function(h,i){if(noNames.indexOf(h)!==-1)noCol=i;if(nameNames.indexOf(h)!==-1)nameCol=i;});
+  var noCol=-1,nameCol=-1,genderCol=-1;
+  headers.forEach(function(h,i){if(noNames.indexOf(h)!==-1)noCol=i;if(nameNames.indexOf(h)!==-1)nameCol=i;if(genderNames.indexOf(h)!==-1)genderCol=i;});
   var start=1;
   if(noCol===-1&&nameCol===-1){noCol=0;nameCol=1;start=0;}
   else if(noCol===-1||nameCol===-1)throw new Error("找不到「座號」與「姓名」兩欄。偵測到的欄名："+rows[0].join("、")+"。請下載範本後貼上資料。");
@@ -736,7 +799,7 @@ function applyImport(rows,fileName){
     var signature=normal(no)+"|"+normal(name);
     if(seen[signature]){issues.push("第 "+(r+1)+" 列重複");continue;}
     seen[signature]=true;
-    list.push({id:newId("student"),no:no,name:name});
+    list.push({id:newId("student"),no:no,name:name,gender:genderCol===-1?"":normalizeGender(rows[r][genderCol])});
   }
   if(!list.length)throw new Error("沒有找到有效的座號、姓名資料。請確認兩欄都已填寫。");
   state.students=list;
@@ -746,7 +809,9 @@ function applyImport(rows,fileName){
   state.groups=[];
   state.candidates=[];
   renderAll();
-  say("已成功匯入 "+list.length+" 位學生："+fileName+(issues.length?"；略過 "+issues.length+" 列不完整或重複資料。":"。"),issues.length?"err":"ok");
+  var genderMissing=list.filter(function(s){return !s.gender;}).length;
+  var genderNote=genderCol===-1?"；未偵測到「性別」欄，男女生安排功能需重新匯入含性別欄的名冊。":(genderMissing?"；"+genderMissing+" 位學生的性別未填或無法辨識。":"；已讀取性別資料，可使用男女生安排。");
+  say("已成功匯入 "+list.length+" 位學生："+fileName+(issues.length?"；略過 "+issues.length+" 列不完整或重複資料。":"。")+genderNote,issues.length?"err":"ok");
 }
 function decode(buffer){
   var bytes=new Uint8Array(buffer);
@@ -902,7 +967,7 @@ function importFile(file){
   }).catch(function(err){say(err.message||"讀取檔案時發生問題。","err");});
 }
 function downloadTemplate(){
-  var text="\ufeff座號,姓名\n1,王小明\n2,陳小華\n3,林小美\n";
+  var text="\ufeff座號,姓名,性別\n1,王小明,男\n2,陳小華,女\n3,林小美,女\n";
   var blob=new Blob([text],{type:"text/csv;charset=utf-8"});
   var link=document.createElement("a");
   link.href=URL.createObjectURL(blob);
@@ -1012,6 +1077,7 @@ function wire(){
   byId("saveRule").addEventListener("click",saveRule);
   byId("cancelRule").addEventListener("click",function(){state.draft={studentId:"",cells:[]};renderAll();});
   byId("addGroup").addEventListener("click",addGroup);
+  document.querySelectorAll("input[name='genderMode']").forEach(function(input){input.addEventListener("change",function(){state.genderMode=input.value;save();});});
   byId("random").addEventListener("click",function(){randomize(true);});
   byId("capture").addEventListener("click",addCandidate);
   byId("makeFive").addEventListener("click",createFive);
