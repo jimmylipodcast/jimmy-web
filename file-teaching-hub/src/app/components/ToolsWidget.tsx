@@ -1,7 +1,10 @@
 'use client';
 import { downloadTools } from '../lib/tools';
+import { useToolDownloads } from '../hooks/useToolDownloads';
 
 export default function ToolsWidget() {
+  const { counts, recordDownload } = useToolDownloads();
+
   if (downloadTools.length === 0) return null;
 
   return (
@@ -28,13 +31,19 @@ export default function ToolsWidget() {
               )}
             </a>
             {tool.downloadPath && (
-              <a
-                href={tool.downloadPath}
-                download={tool.downloadFileName}
-                className="inline-block mt-2 text-[11px] font-bold text-indigo-500 hover:text-indigo-700 underline"
-              >
-                下載離線版
-              </a>
+              <div className="flex items-center justify-between mt-2">
+                <a
+                  href={tool.downloadPath}
+                  download={tool.downloadFileName}
+                  onClick={() => recordDownload(tool.id)}
+                  className="text-[11px] font-bold text-indigo-500 hover:text-indigo-700 underline"
+                >
+                  下載離線版
+                </a>
+                <span className="text-[11px] text-slate-400">
+                  已下載 {(counts[tool.id] ?? 0).toLocaleString('zh-TW')} 次
+                </span>
+              </div>
             )}
           </div>
         ))}
