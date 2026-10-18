@@ -7,6 +7,26 @@ var ORIENTATION_LAYOUT_VERSION=2;
 function initialState(){return {rows:7,cols:7,desk:"bottom",orientationLayoutVersion:ORIENTATION_LAYOUT_VERSION,genderMode:"none",students:[],seats:{},closed:[],rules:[],draft:{studentId:"",cells:[]},groups:[],candidates:[]};}
 var state=initialState();
 var contextKey="";
+var activeCandidateId="",candidateBaseline="",pendingCandidateId="";
+function seatingSnapshot(){return {rows:state.rows,cols:state.cols,desk:state.desk,seats:copy(state.seats),closed:copy(state.closed)};}
+function seatingSignature(){return JSON.stringify(seatingSnapshot());}
+function activeCandidate(){return state.candidates.find(function(c){return c.id===activeCandidateId;})||null;}
+function candidateIsDirty(){return !!activeCandidate()&&candidateBaseline!==seatingSignature();}
+function updateCandidate(){
+  var c=activeCandidate();if(!c)return;
+  Object.assign(c,seatingSnapshot());c.created=new Date().toLocaleString("zh-TW");
+  candidateBaseline=seatingSignature();renderAll();
+}
+function loadCandidate(id){
+  var c=state.candidates.find(function(item){return item.id===id;});if(!c)return;
+  state.rows=c.rows;state.cols=c.cols;state.desk=c.desk;state.seats=copy(c.seats);state.closed=copy(c.closed||[]);
+  activeCandidateId=c.id;candidateBaseline=seatingSignature();renderAll();
+}
+function requestCandidate(id){
+  if(id===activeCandidateId)return;
+  if(candidateIsDirty()){pendingCandidateId=id;byId("candidateDialog").showModal();return;}
+  loadCandidate(id);
+}
 function byId(id){return document.getElementById(id);}
 function cellKey(r,c){return r+"-"+c;}
 function newId(prefix){return prefix+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9);}
@@ -102,7 +122,13 @@ function renderMeta(){
   var bottom=state.desk==="bottom";
   byId("orientation").textContent=bottom?"講台在下方｜1-1 在左下":"講台在上方｜1-1 在右上";
   byId("toggleDesk").textContent=bottom?"講台在下方（點擊切換）":"講台在上方（點擊切換）";
-  byId("ruleCount").textContent=state.rules.length+" / 3";
+  byId("ruleCount").textContent=state.rules.length+" / 5";
+  var editing=activeCandidate(),dirty=candidateIsDirty();
+  byId("editingCandidate").textContent=editing?"正在編輯：候選第 "+(state.candidates.indexOf(editing)+1)+" 張"+(dirty?"｜有尚未儲存的變更":"｜已儲存"):"目前為獨立座位表";
+  byId("updateCandidate").disabled=!editing||!dirty;
+  byId("customExportTitle").value=state.customExportTitle||"";
+  byId("customExportTitle").disabled=state.exportTitleMode!=="custom";
+  document.querySelectorAll("input[name='exportTitleMode']").forEach(function(input){input.checked=input.value===(state.exportTitleMode||"default");});
   byId("candidateCount").textContent=state.candidates.length+" / 10";
   document.querySelectorAll("input[name='genderMode']").forEach(function(input){input.checked=input.value===state.genderMode;});
   var active=student(state.draft.studentId);
@@ -116,7 +142,7 @@ function renderMeta(){
 function renderGrid(){
   var grid=byId("seatGrid");
   grid.innerHTML="";
-  grid.style.gridTemplateColumns="repeat("+state.cols+", minmax(58px,86px))";
+  grid.style.gridTemplateColumns="repeat("+state.cols+", 86px)";
   byId("classroom").className="classroom "+(state.desk==="bottom"?"bottom":"topside");
   for(var vr=1;vr<=state.rows;vr++){
     for(var vc=1;vc<=state.cols;vc++){
@@ -147,6 +173,21 @@ function renderGrid(){
       grid.appendChild(node);
     }
   }
+  requestAnimationFrame(fitSeatGrid);
+}
+function fitSeatGrid(){
+  var grid=byId("seatGrid");if(!grid)return;
+  var width=grid.clientWidth;
+  if(!width)return;
+  var baseWidth=86,baseHeight=56,baseGap=7;
+  var scale=1;
+  var seatWidth=baseWidth*scale,seatHeight=baseHeight*scale;
+  grid.style.gridTemplateColumns="repeat("+state.cols+", "+seatWidth+"px)";
+  grid.style.gridTemplateRows="repeat("+state.rows+", "+seatHeight+"px)";
+  grid.style.gap=(baseGap*scale)+"px";
+  grid.style.height=(state.rows*seatHeight+(state.rows-1)*baseGap*scale)+"px";
+  grid.style.minWidth=(state.cols*seatWidth+(state.cols-1)*baseGap*scale)+"px";
+  grid.style.setProperty("--seat-scale",scale);
 }
 function pickRuleCell(e){
   var k=e.currentTarget.dataset.key;
@@ -254,7 +295,7 @@ function renderRules(){
   var box=byId("rules");
   box.innerHTML="";
   if(!state.rules.length){
-    box.innerHTML="<div class='hint'>尚未儲存特定安排（最多 3 組）。</div>";
+    box.innerHTML="<div class='hint'>尚未儲存特定安排（最多 5 組）。</div>";
     return;
   }
   state.rules.forEach(function(rule,index){
@@ -468,16 +509,16 @@ function renderCandidates(){
   }
   state.candidates.forEach(function(c,index){
     var item=document.createElement("div");
-    item.className="candidate";
+    item.className="candidate"+(c.id===activeCandidateId?" active-candidate":"");
     item.innerHTML="<div class='candidate-top'><label><input class='print-check' type='checkbox' checked> 候選 "+(index+1)+"</label><button class='remove delete' title='刪除'>×</button></div>"+(c.desk==="top"?"<div class='mini-desk'></div>":"")+"<div class='candidate-mini' style='grid-template-columns:repeat("+c.cols+",1fr)'>"+miniHtml(c)+"</div>"+(c.desk==="bottom"?"<div class='mini-desk'></div>":"")+"<div class='hint'>"+escapeHtml(c.created)+"</div>";
     item.addEventListener("click",function(e){
       if(e.target.closest("button")||e.target.closest("label"))return;
-      if(confirm("載入候選 "+(index+1)+" 的座位表？")){
-        state.rows=c.rows;state.cols=c.cols;state.desk=c.desk;state.seats=copy(c.seats);state.closed=copy(c.closed);
-        renderAll();
-      }
+      requestCandidate(c.id);
     });
-    item.querySelector(".delete").addEventListener("click",function(){state.candidates.splice(index,1);renderAll();});
+    item.querySelector(".delete").addEventListener("click",function(){
+      if(c.id===activeCandidateId&&candidateIsDirty()&&!confirm("此候選有尚未儲存的變更，仍要刪除嗎？"))return;
+      state.candidates.splice(index,1);if(c.id===activeCandidateId){activeCandidateId="";candidateBaseline="";}renderAll();
+    });
     box.appendChild(item);
   });
 }
@@ -506,8 +547,10 @@ function exportDate(){
   var now=new Date();
   return now.getFullYear()+"."+twoDigits(now.getMonth()+1)+"."+twoDigits(now.getDate());
 }
-function pngFilename(number){return exportDate()+" 高校座位表達人 "+number+".png";}
-function pngArchiveFilename(){return exportDate()+" 高校座位表達人 PNG.zip";}
+function exportTitle(number){return (state.exportTitleMode==="custom"&&String(state.customExportTitle||"").trim()?String(state.customExportTitle).trim():exportDate()+" 高校座位表達人")+" "+number;}
+function safeFilename(value){return value.replace(/[<>:"/\\|?*\x00-\x1f]/g,"_").replace(/[. ]+$/g,"").slice(0,120)||"座位表";}
+function pngFilename(number){return safeFilename(exportTitle(number))+".png";}
+function pngArchiveFilename(){return safeFilename(state.exportTitleMode==="custom"&&String(state.customExportTitle||"").trim()?state.customExportTitle:exportDate()+" 高校座位表達人")+" PNG.zip";}
 function roundedCanvasPath(ctx,x,y,width,height,radius){
   var r=Math.min(radius,width/2,height/2);
   ctx.beginPath();
@@ -548,7 +591,10 @@ function drawPngCandidate(candidate,number){
   ctx.font="700 28px 'Microsoft JhengHei','Noto Sans TC',sans-serif";
   ctx.textAlign="left";
   ctx.textBaseline="middle";
-  ctx.fillText(exportDate()+" 高校座位表達人 "+number,margin,34);
+  var heading=exportTitle(number);
+  var headingSize=28;
+  while(headingSize>10&&ctx.measureText(heading).width>gridWidth){headingSize--;ctx.font="700 "+headingSize+"px 'Microsoft JhengHei','Noto Sans TC',sans-serif";}
+  ctx.fillText(heading,margin,34,gridWidth);
   ctx.fillStyle="#66758c";
   ctx.font="16px 'Microsoft JhengHei','Noto Sans TC',sans-serif";
   ctx.fillText(candidate.desk==="top"?"講台在上方｜1-1 在右上":"講台在下方｜1-1 在左下",margin,62);
@@ -1064,12 +1110,21 @@ function acceptPrivacyNotice(){
 function saveRule(){
   if(!state.draft.studentId){alert("請先選擇學生。");return;}
   if(!state.draft.cells.length){alert("請在左側至少選擇一個座位。");return;}
-  if(state.rules.length>=3){alert("特定安排最多儲存 3 組。");return;}
+  if(state.rules.length>=5){alert("特定安排最多儲存 5 組。");return;}
   state.rules.push({studentId:state.draft.studentId,cells:copy(state.draft.cells)});
   state.draft={studentId:"",cells:[]};
   renderAll();
 }
 function wire(){
+  if(typeof ResizeObserver!=="undefined")new ResizeObserver(fitSeatGrid).observe(byId("seatGrid"));
+  window.addEventListener("resize",fitSeatGrid);
+  byId("updateCandidate").addEventListener("click",updateCandidate);
+  byId("saveAndSwitch").addEventListener("click",function(){updateCandidate();byId("candidateDialog").close();loadCandidate(pendingCandidateId);});
+  byId("discardAndSwitch").addEventListener("click",function(){byId("candidateDialog").close();loadCandidate(pendingCandidateId);});
+  byId("cancelSwitch").addEventListener("click",function(){byId("candidateDialog").close();});
+  document.querySelectorAll("input[name='exportTitleMode']").forEach(function(input){input.addEventListener("change",function(){state.exportTitleMode=input.value;byId("customExportTitle").disabled=input.value!=="custom";save();});});
+  byId("customExportTitle").addEventListener("input",function(e){state.customExportTitle=e.target.value;save();});
+  window.addEventListener("beforeunload",function(e){if(candidateIsDirty()){e.preventDefault();e.returnValue="";}});
   byId("file").addEventListener("change",function(e){if(e.target.files[0])importFile(e.target.files[0]);e.target.value="";});
   byId("downloadTemplate").addEventListener("click",downloadTemplate);
   byId("sizeApply").addEventListener("click",changeSize);
