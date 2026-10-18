@@ -17,7 +17,7 @@ export const downloadTools: DownloadTool[] = [
     path: '/tools/seat-planner/',
     downloadPath: '/downloads/seat-planner.zip',
     downloadFileName: '高校座位表達人_離線版.zip',
-    version: 'v1.5.2',
-    updatedAt: '10/12',
+    version: 'v1.6.6',
+    updatedAt: '10/18',
   },
 ];
