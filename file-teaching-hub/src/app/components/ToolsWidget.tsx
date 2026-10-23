@@ -1,17 +1,18 @@
 'use client';
-import { downloadTools } from '../lib/tools';
+import { useTools } from '../hooks/useTools';
 import { useToolDownloads } from '../hooks/useToolDownloads';
 
 export default function ToolsWidget() {
+  const tools = useTools();
   const { counts, recordDownload } = useToolDownloads();
 
-  if (downloadTools.length === 0) return null;
+  if (!tools || tools.length === 0) return null;
 
   return (
     <div className="bg-white p-6 rounded-3xl border border-slate-100/80 shadow-sm">
       <h2 className="font-black text-slate-800 text-base mb-4">工具與下載專區</h2>
       <div className="space-y-3">
-        {downloadTools.map((tool) => (
+        {tools.map((tool) => (
           <div
             key={tool.id}
             className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl hover:border-indigo-200 hover:bg-indigo-50/40 transition group"
