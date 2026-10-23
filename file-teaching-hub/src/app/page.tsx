@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useBlog } from './hooks/useBlog'; // 修正：具名導入
 
 import CourseHeader from './components/CourseHeader';
 import CourseList from './components/CourseList';
 import CategorySelector from './components/CategorySelector';
 import PodcastWidget from './components/PodcastWidget';
-import AdminControlPanel from './components/AdminControlPanel';
-import AdminLoginModal from './components/AdminLoginModal';
 import { useAuth } from './hooks/useAuth';
 import MaintenancePage from './components/MaintenancePage';
 import VisitCounterBadge from './components/VisitCounterBadge';
@@ -24,20 +23,15 @@ export default function Home() {
     uniqueCourseNames,
     categories,
     loading,
-    addCourse,
     updateCourse,
     deleteCourse,
-    togglePin,
-    addCategory,
-    deleteCategory,
-    reorderCategories
+    togglePin
   } = useBlog();
 
   const [selected, setSelected] = useState('全部文章');
   const [search, setSearch] = useState('');
-  const { isAdmin, authLoading, login, logout } = useAuth();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-
+  const { isAdmin, logout } = useAuth();
+  const router = useRouter();
 
   // 🎯 維修模式開關：讀取環境變數，開啟時一般訪客只會看到維修頁面
   const isMaintenanceMode = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
@@ -91,19 +85,8 @@ export default function Home() {
           searchQuery={search}
           setSearchQuery={setSearch}
           isAdmin={isAdmin}
-          onLockClick={() => (isAdmin ?  logout()  : setIsLoginOpen(true))}
+          onLockClick={() => (isAdmin ? logout() : router.push('/admin'))}
         />
-
-        {isAdmin && (
-          <AdminControlPanel
-            categories={categories}
-            onAddCourse={addCourse}
-            onAddCategory={addCategory}
-            onDeleteCategory={deleteCategory}
-            onLogout={() => logout()}
-            onReorderCategories={reorderCategories}
-          />
-        )}
 
         {loading ? (
           <div className="text-center py-20 text-slate-400 text-xs font-bold tracking-widest animate-pulse">
@@ -157,14 +140,6 @@ export default function Home() {
           </>
         )}
       </div>
-
-      {/* 3. 🎯 修正登入彈窗邏輯：條件渲染，關閉時徹底從頁面消失 */}
-      {isLoginOpen && (
-        <AdminLoginModal
-          onClose={() => setIsLoginOpen(false)}
-          onLogin={login}
-        />
-      )}
 
       <VisitCounterBadge />
 
