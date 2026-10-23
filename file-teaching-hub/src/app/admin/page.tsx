@@ -5,6 +5,7 @@ import { useBlog } from '../hooks/useBlog';
 import { useAuth } from '../hooks/useAuth';
 import AdminControlPanel from '../components/AdminControlPanel';
 import CourseList from '../components/CourseList';
+import ToolsManager from '../components/ToolsManager';
 
 function AdminLoginCard({ onLogin }: { onLogin: (email: string, password: string) => Promise<void> }) {
   const [email, setEmail] = useState('');
@@ -82,6 +83,8 @@ export default function AdminPage() {
     reorderCategories
   } = useBlog();
 
+  const [tab, setTab] = useState<'articles' | 'tools'>('articles');
+
   const sortedCourses = useMemo(
     () => [...courses].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
     [courses]
@@ -99,6 +102,11 @@ export default function AdminPage() {
     return <AdminLoginCard onLogin={login} />;
   }
 
+  const tabClass = (active: boolean) =>
+    `text-xs font-bold px-4 py-2 rounded-xl transition ${
+      active ? 'bg-slate-800 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+    }`;
+
   return (
     <main className="min-h-screen bg-slate-50 py-10 px-6 pb-24">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -107,37 +115,53 @@ export default function AdminPage() {
             <h1 className="text-xl font-black text-slate-800">後台管理</h1>
             <p className="text-xs text-slate-400 font-medium">高校化學事</p>
           </div>
-          <Link href="/" className="text-xs font-bold text-indigo-500 hover:text-indigo-700">
-            ← 回到網站
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="text-xs font-bold text-indigo-500 hover:text-indigo-700">
+              ← 回到網站
+            </Link>
+            <button onClick={() => logout()} className="text-xs font-bold text-slate-400 hover:text-slate-600">
+              登出
+            </button>
+          </div>
         </div>
 
-        <AdminControlPanel
-          categories={categories}
-          onAddCourse={addCourse}
-          onAddCategory={addCategory}
-          onDeleteCategory={deleteCategory}
-          onReorderCategories={reorderCategories}
-          onLogout={() => logout()}
-        />
+        <div className="flex gap-2">
+          <button onClick={() => setTab('articles')} className={tabClass(tab === 'articles')}>文章與分類</button>
+          <button onClick={() => setTab('tools')} className={tabClass(tab === 'tools')}>工具與下載</button>
+        </div>
 
-        <section className="space-y-4">
-          <h2 className="text-sm font-black text-slate-700">已發布的文章（{courses.length}）</h2>
-          {loading ? (
-            <div className="text-center py-10 text-slate-400 text-xs font-bold tracking-widest animate-pulse">
-              同步中...
-            </div>
-          ) : (
-            <CourseList
-              courses={sortedCourses}
+        {tab === 'articles' ? (
+          <>
+            <AdminControlPanel
               categories={categories}
-              isAdmin={true}
-              onDelete={deleteCourse}
-              onTogglePin={togglePin}
-              onUpdate={updateCourse}
+              onAddCourse={addCourse}
+              onAddCategory={addCategory}
+              onDeleteCategory={deleteCategory}
+              onReorderCategories={reorderCategories}
+              onLogout={() => logout()}
             />
-          )}
-        </section>
+
+            <section className="space-y-4">
+              <h2 className="text-sm font-black text-slate-700">已發布的文章（{courses.length}）</h2>
+              {loading ? (
+                <div className="text-center py-10 text-slate-400 text-xs font-bold tracking-widest animate-pulse">
+                  同步中...
+                </div>
+              ) : (
+                <CourseList
+                  courses={sortedCourses}
+                  categories={categories}
+                  isAdmin={true}
+                  onDelete={deleteCourse}
+                  onTogglePin={togglePin}
+                  onUpdate={updateCourse}
+                />
+              )}
+            </section>
+          </>
+        ) : (
+          <ToolsManager />
+        )}
       </div>
     </main>
   );
